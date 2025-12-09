@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Financial Health Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      :root {
+        color: #e2e8f0;
+        background: #0b1220;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.25), transparent 55%),
+          radial-gradient(circle at 80% 0%, rgba(14, 116, 144, 0.45), transparent 45%),
+          #050910;
+        display: flex;
+      }
+
+      .app-shell {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .sidebar {
+        width: 260px;
+        background: linear-gradient(180deg, rgba(10, 16, 32, 0.9), rgba(5, 8, 16, 0.95));
+        border-left: 1px solid rgba(148, 163, 184, 0.1);
+        padding: 2.5rem 1.5rem;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+      }
+
+      .brand {
+        font-family: "Rajdhani", "Inter", sans-serif;
+        letter-spacing: 0.2rem;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        color: #60a5fa;
+      }
+
+      .sidebar nav a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #cbd5f5;
+        text-decoration: none;
+        padding: 0.6rem 0.4rem;
+        border-radius: 10px;
+        transition: background 0.2s ease, transform 0.2s ease;
+        font-size: 0.95rem;
+      }
+
+      .sidebar nav a:hover,
+      .sidebar nav a.active {
+        background: rgba(96, 165, 250, 0.12);
+        color: #fff;
+        transform: translateX(4px);
+      }
+
+      .avatar-card {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.9rem;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(15, 23, 42, 0.6);
+      }
+
+      .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      .avatar-card .identity {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .avatar-card button {
+        border: none;
+        background: rgba(248, 250, 252, 0.05);
+        color: #e2e8f0;
+        border-radius: 10px;
+        padding: 0.35rem 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .avatar-card button:hover {
+        background: rgba(248, 250, 252, 0.15);
+      }
+
+      .content-area {
+        flex: 1;
+        padding: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+      }
+
+      .section-title {
+        font-family: "Rajdhani", "Inter", sans-serif;
+        letter-spacing: 0.08rem;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        color: #94a3b8;
+        margin-bottom: 0.25rem;
+      }
+
+      .glass {
+        border-radius: 24px;
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 25px 60px rgba(2, 6, 23, 0.7);
+        backdrop-filter: blur(18px);
+        padding: 1.75rem;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+        color: #f1f5f9;
+      }
+
+      .hero p {
+        margin: 0;
+        color: #94a3b8;
+        max-width: 60ch;
+      }
+
+      .connect-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.3rem;
+        margin-top: 1.25rem;
+      }
+
+      label {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.08rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 14px;
+        padding: 0.85rem 1rem;
+        background: rgba(15, 23, 42, 0.65);
+        color: #e2e8f0;
+        font-size: 1rem;
+        transition: border 0.2s ease;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #60a5fa;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      button {
+        border: none;
+        border-radius: 14px;
+        padding: 0.85rem 1.4rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      button::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+      }
+
+      button.primary {
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        color: #fff;
+      }
+
+      button.secondary {
+        background: rgba(15, 23, 42, 0.8);
+        color: #e2e8f0;
+      }
+
+      button.danger {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: #fff;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 25px rgba(2, 6, 23, 0.5);
+      }
+
+      .timeline {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 1.25rem;
+      }
+
+      .timeline-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        padding: 1rem;
+        border-radius: 16px;
+        border: 1px dashed rgba(96, 165, 250, 0.25);
+        background: rgba(15, 23, 42, 0.4);
+      }
+
+      .timeline-step.active {
+        border-color: rgba(56, 189, 248, 0.6);
+        background: rgba(15, 118, 110, 0.25);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.15rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .pill.good {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+      }
+
+      .pill.bad {
+        background: rgba(248, 113, 113, 0.2);
+        color: #f87171;
+      }
+
+      .pill.watch {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+      }
+
+      .metric-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 1rem;
+      }
+
+      .metric-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        padding: 1.2rem;
+        background: rgba(5, 8, 16, 0.65);
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .metric-value {
+        font-size: 1.6rem;
+        font-weight: 600;
+      }
+
+      .sparkline {
+        margin-top: 0.6rem;
+        height: 28px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(96, 165, 250, 0.35), rgba(14, 165, 233, 0.05));
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sparkline::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border-radius: 999px;
+        border: 1px solid rgba(96, 165, 250, 0.5);
+        opacity: 0.4;
+      }
+
+      ul.client-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.75rem 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      ul.client-list li {
+        padding: 0.65rem 0.75rem;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid transparent;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      ul.client-list li:hover {
+        border-color: rgba(96, 165, 250, 0.4);
+      }
+
+      .client-actions {
+        display: flex;
+        gap: 0.35rem;
+      }
+
+      button.ghost {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: transparent;
+        color: #cbd5f5;
+        padding: 0.35rem 0.75rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+      }
+
+      button.ghost:hover {
+        border-color: rgba(96, 165, 250, 0.5);
+        color: #fff;
+      }
+
+      button.ghost.danger {
+        border-color: rgba(248, 113, 113, 0.4);
+        color: #fca5a5;
+      }
+
+      button.ghost.danger:hover {
+        border-color: rgba(248, 113, 113, 0.6);
+        color: #fff;
+      }
+
+      .activity-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+
+      .activity-item {
+        display: flex;
+        gap: 0.85rem;
+        align-items: center;
+        background: rgba(5, 8, 16, 0.65);
+        padding: 0.85rem;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      .activity-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+      }
+
+      .activity-body {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .toast-host {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        z-index: 20;
+      }
+
+      .toast {
+        padding: 0.85rem 1.1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.85);
+        min-width: 220px;
+        animation: slideIn 0.25s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      @media (max-width: 960px) {
+        .sidebar {
+          display: none;
+        }
+        .content-area {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="content-area">
+        <section class="glass hero" id="section-dashboard">
+          <div class="section-title">Financial command center</div>
+          <h1>Welcome back, {{ user.email.split('@')[0].title() }}</h1>
+          <p>Monitor each client's liquidity, quickly reconnect their QuickBooks data, and deliver actionable insight.</p>
+        </section>
+
+        <section class="glass" id="section-connect">
+          <div class="section-title">
+            {% if user.role == 'admin' %} Connection control {% else %} QuickBooks connection {% endif %}
+          </div>
+          {% if user.role == 'admin' %}
+          <label for="clientKey">Client identifier</label>
+          <input id="clientKey" placeholder="client-key" value="{{ default_client_key }}" />
+          {% else %}
+          <div style="display:flex; align-items:center; gap:0.8rem">
+            <div>
+              <h2 style="margin:0">
+                {% if clients %} {{ clients[0].name }} {% else %} No client assigned {% endif %}
+              </h2>
+              <p style="margin:0; color:#94a3b8; font-size:0.9rem">Keep your connection fresh to view the latest ratios.</p>
+            </div>
+            <div id="clientStatus" class="pill {{ 'good' if clients and clients[0].connected else 'bad' }}">
+              {% if clients and clients[0].connected %}
+                Connected
+              {% else %}
+                Not connected
+              {% endif %}
+            </div>
+          </div>
+          <input type="hidden" id="clientKey" value="{{ default_client_key }}" />
+          {% endif %}
+
+          <div class="button-row">
+            <button class="primary" onclick="beginOAuth()">Connect QuickBooks</button>
+            <button class="secondary" onclick="fetchMetrics()">Refresh metrics</button>
+            <button class="danger" onclick="disconnectClient()">Disconnect</button>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-step" data-step="prepare">
+              <div class="pill watch">Step 1</div>
+              <strong>Prepare</strong>
+              <span>Choose the client profile you want to refresh.</span>
+            </div>
+            <div class="timeline-step" data-step="authorize">
+              <div class="pill watch">Step 2</div>
+              <strong>Authorize</strong>
+              <span>Client signs into Intuit and approves access.</span>
+            </div>
+            <div class="timeline-step" data-step="sync">
+              <div class="pill watch">Step 3</div>
+              <strong>Sync</strong>
+              <span>Metrics update with live balance sheet data.</span>
+            </div>
+          </div>
+
+          {% if user.role == 'admin' %}
+          <div style="margin-top:1.5rem">
+            <label>Clients you can access</label>
+            <ul class="client-list" id="clientList">
+              <li class="pill watch" style="cursor:default">Loading…</li>
+            </ul>
+          </div>
+          {% endif %}
+        </section>
+
+        {% if user.role == 'admin' %}
+        <section class="glass" id="section-clients">
+          <div class="section-title">Onboard a client</div>
+          <h2>Create login credentials</h2>
+          <p style="color:#94a3b8">Give your client access, then they can connect QuickBooks on their own.</p>
+          <form id="clientForm" onsubmit="submitClient(event)">
+            <div class="form-grid">
+              <div>
+                <label for="clientName">Business name</label>
+                <input id="clientName" required placeholder="Dewey Cheatem & Howe, LLC" />
+              </div>
+              <div>
+                <label for="clientEmail">Client email</label>
+                <input id="clientEmail" type="email" required placeholder="client@company.com" />
+              </div>
+              <div>
+                <label for="clientPassword">Temporary password</label>
+                <input id="clientPassword" type="password" required placeholder="Choose a secure password" />
+              </div>
+            </div>
+            <div class="button-row" style="margin-top:1.1rem">
+              <button type="submit" class="primary">Create client account</button>
+            </div>
+          </form>
+        </section>
+        {% endif %}
+
+        <section class="glass" id="section-metrics">
+          <div class="section-title">Financial literacy metrics</div>
+          <h2>At-a-glance ratios</h2>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Working capital</span>
+                <span class="pill good" id="chip-workingCapital">Healthy</span>
+              </div>
+              <div id="workingCapital" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Working capital ratio</span>
+                <span class="pill watch" id="chip-workingCapitalRatio">Watch</span>
+              </div>
+              <div id="workingCapitalRatio" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Debt-to-equity</span>
+                <span class="pill watch" id="chip-debtToEquityRatio">Watch</span>
+              </div>
+              <div id="debtToEquityRatio" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Current assets</span>
+                <span class="pill good" id="chip-currentAssets">Healthy</span>
+              </div>
+              <div id="currentAssets" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Current liabilities</span>
+                <span class="pill bad" id="chip-currentLiabilities">Action</span>
+              </div>
+              <div id="currentLiabilities" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Total liabilities</span>
+                <span class="pill bad" id="chip-totalLiabilities">Action</span>
+              </div>
+              <div id="totalLiabilities" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+            <div class="metric-card">
+              <div style="display:flex; justify-content:space-between; align-items:center">
+                <span>Total equity</span>
+                <span class="pill good" id="chip-totalEquity">Healthy</span>
+              </div>
+              <div id="totalEquity" class="metric-value">—</div>
+              <div class="sparkline"></div>
+            </div>
+          </div>
+        </section>
+
+        {% if user.role == 'admin' %}
+        <section class="glass" id="section-activity">
+          <div class="section-title">System activity</div>
+          <h2>Recent orchestration</h2>
+          <div class="activity-feed" id="activityFeed">
+            <div class="activity-item">
+              <div class="activity-avatar">⏳</div>
+              <div class="activity-body">
+                <strong>Waiting for actions…</strong>
+                <span style="font-size:0.85rem; color:#94a3b8">Activity log populates as you manage clients.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        {% endif %}
+
+        <section class="glass" id="section-account">
+          <div class="section-title">Account security</div>
+          <h2>Change your password</h2>
+          <p style="color:#94a3b8">Passwords are hashed and stored securely. Confirm the new one before saving.</p>
+          <form id="passwordForm" onsubmit="updatePassword(event)">
+            <div class="form-grid">
+              <div>
+                <label for="newPassword">New password</label>
+                <input id="newPassword" type="password" required minlength="6" autocomplete="new-password" />
+              </div>
+              <div>
+                <label for="confirmPassword">Confirm password</label>
+                <input id="confirmPassword" type="password" required minlength="6" autocomplete="new-password" />
+              </div>
+            </div>
+            <div class="button-row" style="margin-top:1.1rem">
+              <button type="submit" class="primary">Update password</button>
+              <span id="passwordStatus" style="color:#94a3b8"></span>
+            </div>
+          </form>
+        </section>
+      </main>
+      <aside class="sidebar">
+        <div class="brand">Navigation</div>
+        <div class="avatar-card">
+          <div class="avatar">{{ user.email[:2].upper() }}</div>
+          <div class="identity">
+            <div style="font-weight: 600">{{ user.email }}</div>
+            <div style="font-size: 0.85rem; color: #94a3b8">{{ user.role | capitalize }}</div>
+          </div>
+        </div>
+        <nav>
+          <a class="active" href="#section-dashboard">⚡ Dashboard</a>
+          <a href="#section-connect">🔗 Connection</a>
+          {% if user.role == 'admin' %}
+          <a href="#section-clients">👥 Clients</a>
+          {% endif %}
+          <a href="#section-metrics">📊 Metrics</a>
+          {% if user.role == 'admin' %}
+          <a href="#section-activity">🛰️ Activity</a>
+          {% endif %}
+          <a href="#section-account">🔐 Account</a>
+        </nav>
+        <form method="post" action="/logout" style="margin-top: auto">
+          <button type="submit" class="secondary" style="width: 100%">Sign out</button>
+        </form>
+      </aside>
+    </div>
+
+    <div class="toast-host" id="toastHost"></div>
+
+    <script>
+      window.dashboardData = {{ {
+        "user": user,
+        "clients": clients,
+        "defaultClientKey": default_client_key
+      } | tojson }};
+
+      const formatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+      const ratioFormatter = new Intl.NumberFormat(undefined, { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const state = {
+        role: window.dashboardData.user.role,
+        clients: window.dashboardData.clients || [],
+        currentClientKey: window.dashboardData.defaultClientKey || "",
+      };
+
+      const toasts = document.getElementById("toastHost");
+      const clientInput = document.getElementById("clientKey");
+
+      function showToast(message, tone = "neutral") {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        if (tone === "error") {
+          toast.style.borderColor = "rgba(248, 113, 113, 0.3)";
+        } else if (tone === "success") {
+          toast.style.borderColor = "rgba(16, 185, 129, 0.3)";
+        }
+        toast.textContent = message;
+        toasts.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
+
+      function updateTimeline(step) {
+        const steps = document.querySelectorAll(".timeline-step");
+        steps.forEach((node) => {
+          node.classList.toggle("active", node.dataset.step === step);
+        });
+      }
+
+      function currentClientKey() {
+        if (!clientInput) {
+          return state.currentClientKey || "";
+        }
+        const value = clientInput.value.trim();
+        if (value) {
+          state.currentClientKey = value;
+          return value;
+        }
+        return state.currentClientKey || "";
+      }
+
+      function findClientByKey(key) {
+        return state.clients.find((c) => c.client_key === key);
+      }
+
+      function isCurrentClientConnected() {
+        const client = findClientByKey(currentClientKey());
+        return client ? client.connected : false;
+      }
+
+      function updateMetric(id, value, isRatio = false) {
+        const el = document.getElementById(id);
+        const chip = document.getElementById(`chip-${id}`);
+        if (!el) return;
+        if (value == null) {
+          el.textContent = "—";
+          if (chip) {
+            chip.textContent = "No data";
+            chip.className = "pill watch";
+          }
+          return;
+        }
+        el.textContent = isRatio ? ratioFormatter.format(value) : formatter.format(value);
+        if (chip) {
+          let status = "watch";
+          if (id === "workingCapitalRatio") {
+            if (value >= 1.2) status = "good";
+            else if (value < 1) status = "bad";
+          } else if (id === "debtToEquityRatio") {
+            if (value <= 1.5) status = "good";
+            else if (value > 3) status = "bad";
+          } else if (id === "currentLiabilities" || id === "totalLiabilities") {
+            status = "bad";
+          } else {
+            status = "good";
+          }
+          chip.className = `pill ${status}`;
+          chip.textContent = status === "good" ? "Healthy" : status === "bad" ? "Action" : "Watch";
+        }
+      }
+
+      function renderClients() {
+        const list = document.getElementById("clientList");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!state.clients.length) {
+          const li = document.createElement("li");
+          li.textContent = "No client accounts yet.";
+          li.style.color = "#94a3b8";
+          list.appendChild(li);
+          return;
+        }
+        state.clients.forEach((client) => {
+          const li = document.createElement("li");
+          const info = document.createElement("div");
+          const name = document.createElement("strong");
+          name.textContent = client.name;
+          const statusChip = document.createElement("span");
+          statusChip.className = `pill ${client.connected ? "good" : "bad"}`;
+          statusChip.style.marginLeft = "0.45rem";
+          statusChip.textContent = client.connected ? "Connected" : "Not connected";
+          info.appendChild(name);
+          info.appendChild(statusChip);
+
+          const actions = document.createElement("div");
+          actions.className = "client-actions";
+
+          const viewBtn = document.createElement("button");
+          viewBtn.type = "button";
+          viewBtn.className = "ghost";
+          viewBtn.textContent = "Select";
+          viewBtn.onclick = () => {
+            state.currentClientKey = client.client_key;
+            if (clientInput) clientInput.value = client.client_key;
+            if (client.connected) {
+              fetchMetrics();
+            } else {
+              showToast(`Connect ${client.name} to QuickBooks before refreshing metrics.`, "error");
+            }
+          };
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "ghost danger";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.onclick = () => deleteClientRecord(client.client_key, client.name);
+
+          actions.appendChild(viewBtn);
+          actions.appendChild(deleteBtn);
+          li.appendChild(info);
+          li.appendChild(actions);
+          list.appendChild(li);
+        });
+      }
+
+      function updateClientStatusBanner() {
+        if (state.role !== "client") return;
+        const pill = document.getElementById("clientStatus");
+        if (!pill) return;
+        const target = state.clients.find((c) => c.client_key === currentClientKey());
+        if (!target || !target.connected) {
+          pill.className = "pill bad";
+          pill.textContent = "Not connected";
+        } else {
+          pill.className = "pill good";
+          pill.textContent = "Connected";
+        }
+      }
+
+      function pushActivity(message) {
+        const feed = document.getElementById("activityFeed");
+        if (!feed) return;
+        const item = document.createElement("div");
+        item.className = "activity-item";
+        const avatar = document.createElement("div");
+        avatar.className = "activity-avatar";
+        avatar.textContent = "•";
+        const body = document.createElement("div");
+        body.className = "activity-body";
+        body.innerHTML = `<strong>${message}</strong><span style="font-size:0.8rem; color:#94a3b8">${new Date().toLocaleTimeString()}</span>`;
+        item.appendChild(avatar);
+        item.appendChild(body);
+        feed.prepend(item);
+        while (feed.children.length > 6) {
+          feed.removeChild(feed.lastChild);
+        }
+      }
+
+      function beginOAuth() {
+        const key = currentClientKey();
+        if (!key) {
+          showToast("Select a client first.", "error");
+          return;
+        }
+        updateTimeline("authorize");
+        showToast(`Redirecting to Intuit for ${key}…`, "success");
+        window.location.href = `/auth?client_key=${encodeURIComponent(key)}`;
+      }
+
+      async function fetchMetrics() {
+        const key = currentClientKey();
+        if (!key) {
+          showToast("Select a client before refreshing.", "error");
+          return;
+        }
+        const client = findClientByKey(key);
+        if (client && !client.connected) {
+          showToast(`Connect ${client.name} to QuickBooks first.`, "error");
+          return;
+        }
+        updateTimeline("sync");
+        try {
+          const response = await fetch(`/metrics?client_key=${encodeURIComponent(key)}`);
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          updateMetric("workingCapital", body.workingCapital);
+          updateMetric("workingCapitalRatio", body.workingCapitalRatio, true);
+          updateMetric("debtToEquityRatio", body.debtToEquityRatio, true);
+          updateMetric("currentAssets", body.currentAssets);
+          updateMetric("currentLiabilities", body.currentLiabilities);
+          updateMetric("totalLiabilities", body.totalLiabilities);
+          updateMetric("totalEquity", body.totalEquity);
+          updateTimeline("sync");
+          showToast("Metrics refreshed.", "success");
+          pushActivity(`Metrics refreshed for ${key}`);
+        } catch (error) {
+          showToast(error.message, "error");
+          pushActivity(`Metrics failed for ${key}`);
+        }
+      }
+
+      async function refreshClients() {
+        try {
+          const response = await fetch("/clients");
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          state.clients = body.clients || [];
+          renderClients();
+          updateClientStatusBanner();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function submitClient(event) {
+        event.preventDefault();
+        const payload = {
+          name: document.getElementById("clientName").value.trim(),
+          email: document.getElementById("clientEmail").value.trim(),
+          password: document.getElementById("clientPassword").value,
+        };
+        if (!payload.name || !payload.email || !payload.password) {
+          showToast("Fill out all client fields.", "error");
+          return;
+        }
+        try {
+          const response = await fetch("/clients", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          document.getElementById("clientForm").reset();
+          showToast(`Client ${body.client.name} created.`, "success");
+          pushActivity(`Client ${body.client.name} onboarded`);
+          refreshClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function disconnectClient() {
+        const key = currentClientKey();
+        if (!key) {
+          showToast("Select a client first.", "error");
+          return;
+        }
+        try {
+          const response = await fetch(`/disconnect?client_key=${encodeURIComponent(key)}`, { method: "POST" });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          showToast("Client disconnected.", "success");
+          pushActivity(`Disconnected client ${key}`);
+          refreshClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function deleteClientRecord(clientKey, clientName) {
+        if (!window.confirm(`Delete ${clientName}? Their login and tokens will be removed.`)) {
+          return;
+        }
+        try {
+          const response = await fetch(`/clients/${encodeURIComponent(clientKey)}`, { method: "DELETE" });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          showToast(`Deleted ${clientName}.`, "success");
+          pushActivity(`Client ${clientName} deleted`);
+          refreshClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function updatePassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const status = document.getElementById("passwordStatus");
+        status.textContent = "Updating…";
+        try {
+          const form = new FormData();
+          form.append("password", password);
+          form.append("confirm_password", confirmPassword);
+          const response = await fetch("/profile/password", { method: "POST", body: form });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          document.getElementById("passwordForm").reset();
+          status.textContent = "Password updated.";
+          showToast("Password updated.", "success");
+        } catch (error) {
+          status.textContent = error.message;
+          showToast(error.message, "error");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        if (clientInput && state.currentClientKey) clientInput.value = state.currentClientKey;
+        renderClients();
+        updateClientStatusBanner();
+        if (state.currentClientKey && isCurrentClientConnected()) {
+          fetchMetrics();
+        }
+      });
+    </script>
+  </body>
+</html>
