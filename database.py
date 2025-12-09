@@ -37,6 +37,35 @@ class User:
     email: str
     role: str
     hashed_password: str
+    onboarding_completed: int = 0
+
+
+@dataclass
+class FirmProfile:
+    user_id: int
+    company_type: str
+    firm_name: str
+    contact_first_name: Optional[str]
+    contact_last_name: Optional[str]
+    contact_phone: Optional[str]
+    address_line: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    postal_code: Optional[str]
+    client_volume: Optional[str]
+    website: Optional[str]
+
+
+@dataclass
+class ClientProfile:
+    client_id: int
+    contact_name: Optional[str]
+    phone: Optional[str]
+    industry: Optional[str]
+    address_line: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    postal_code: Optional[str]
 
 
 @dataclass
@@ -47,6 +76,10 @@ class Client:
     owner_user_id: int
     connected: bool
     realm_id: Optional[str]
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    industry: Optional[str] = None
+    onboarding_completed: int = 0
 
 
 @dataclass
@@ -74,6 +107,7 @@ def init_db() -> bool:
                 email TEXT NOT NULL UNIQUE,
                 hashed_password TEXT NOT NULL,
                 role TEXT NOT NULL,
+                onboarding_completed INTEGER NOT NULL DEFAULT 0,
                 created_at INTEGER NOT NULL
             )
             """
@@ -98,8 +132,47 @@ def init_db() -> bool:
                 name TEXT NOT NULL,
                 client_key TEXT NOT NULL UNIQUE,
                 owner_user_id INTEGER NOT NULL,
+                onboarding_completed INTEGER NOT NULL DEFAULT 0,
                 created_at INTEGER NOT NULL,
                 FOREIGN KEY(owner_user_id) REFERENCES users(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS firm_profiles (
+                user_id INTEGER PRIMARY KEY,
+                company_type TEXT NOT NULL,
+                firm_name TEXT NOT NULL,
+                contact_first_name TEXT,
+                contact_last_name TEXT,
+                contact_phone TEXT,
+                address_line TEXT,
+                city TEXT,
+                state TEXT,
+                postal_code TEXT,
+                client_volume TEXT,
+                website TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS client_profiles (
+                client_id INTEGER PRIMARY KEY,
+                contact_name TEXT,
+                phone TEXT,
+                industry TEXT,
+                address_line TEXT,
+                city TEXT,
+                state TEXT,
+                postal_code TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                FOREIGN KEY(client_id) REFERENCES clients(id) ON DELETE CASCADE
             )
             """
         )
@@ -117,7 +190,18 @@ def init_db() -> bool:
             """
         )
     _ensure_default_admin()
+    _ensure_schema_columns()
     return first_time
+
+
+def _ensure_schema_columns() -> None:
+    with _get_connection() as conn:
+        cols = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+        if "onboarding_completed" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN onboarding_completed INTEGER NOT NULL DEFAULT 0")
+        cols = {row["name"] for row in conn.execute("PRAGMA table_info(clients)").fetchall()}
+        if "onboarding_completed" not in cols:
+            conn.execute("ALTER TABLE clients ADD COLUMN onboarding_completed INTEGER NOT NULL DEFAULT 0")
 
 
 def _ensure_default_admin() -> None:
@@ -140,8 +224,8 @@ def create_user(email: str, password: str, role: str) -> User:
     with _get_connection() as conn:
         cur = conn.execute(
             """
-            INSERT INTO users (email, hashed_password, role, created_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO users (email, hashed_password, role, onboarding_completed, created_at)
+            VALUES (?, ?, ?, 0, ?)
             """,
             (email.lower().strip(), hashed, role, now),
         )
@@ -149,10 +233,100 @@ def create_user(email: str, password: str, role: str) -> User:
     return User(id=user_id, email=email.lower().strip(), role=role, hashed_password=hashed)
 
 
+def get_firm_profile(user_id: int) -> Optional[FirmProfile]:
+    with _get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT user_id, company_type, firm_name, contact_first_name, contact_last_name, contact_phone,
+                   address_line, city, state, postal_code, client_volume, website
+            FROM firm_profiles
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        ).fetchone()
+    if not row:
+        return None
+    return FirmProfile(
+        user_id=row["user_id"],
+        company_type=row["company_type"],
+        firm_name=row["firm_name"],
+        contact_first_name=row["contact_first_name"],
+        contact_last_name=row["contact_last_name"],
+        contact_phone=row["contact_phone"],
+        address_line=row["address_line"],
+        city=row["city"],
+        state=row["state"],
+        postal_code=row["postal_code"],
+        client_volume=row["client_volume"],
+        website=row["website"],
+    )
+
+
+def upsert_firm_profile(
+    *,
+    user_id: int,
+    company_type: str,
+    firm_name: str,
+    contact_first_name: Optional[str] = None,
+    contact_last_name: Optional[str] = None,
+    contact_phone: Optional[str] = None,
+    address_line: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    postal_code: Optional[str] = None,
+    client_volume: Optional[str] = None,
+    website: Optional[str] = None,
+) -> FirmProfile:
+    now = int(time.time())
+    with _get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO firm_profiles (
+                user_id, company_type, firm_name, contact_first_name, contact_last_name, contact_phone,
+                address_line, city, state, postal_code, client_volume, website, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+                company_type=excluded.company_type,
+                firm_name=excluded.firm_name,
+                contact_first_name=excluded.contact_first_name,
+                contact_last_name=excluded.contact_last_name,
+                contact_phone=excluded.contact_phone,
+                address_line=excluded.address_line,
+                city=excluded.city,
+                state=excluded.state,
+                postal_code=excluded.postal_code,
+                client_volume=excluded.client_volume,
+                website=excluded.website,
+                updated_at=excluded.updated_at
+            """,
+            (
+                user_id,
+                company_type,
+                firm_name,
+                contact_first_name,
+                contact_last_name,
+                contact_phone,
+                address_line,
+                city,
+                state,
+                postal_code,
+                client_volume,
+                website,
+                now,
+                now,
+            ),
+        )
+    profile = get_firm_profile(user_id)
+    if not profile:
+        raise RuntimeError("Failed to persist firm profile.")
+    return profile
+
+
 def get_user_by_email(email: str) -> Optional[User]:
     with _get_connection() as conn:
         row = conn.execute(
-            "SELECT id, email, hashed_password, role FROM users WHERE email = ?",
+            "SELECT id, email, hashed_password, role, onboarding_completed FROM users WHERE email = ?",
             (email.lower().strip(),),
         ).fetchone()
     return _row_to_user(row)
@@ -161,7 +335,7 @@ def get_user_by_email(email: str) -> Optional[User]:
 def get_user_by_id(user_id: int) -> Optional[User]:
     with _get_connection() as conn:
         row = conn.execute(
-            "SELECT id, email, hashed_password, role FROM users WHERE id = ?",
+            "SELECT id, email, hashed_password, role, onboarding_completed FROM users WHERE id = ?",
             (user_id,),
         ).fetchone()
     return _row_to_user(row)
@@ -191,6 +365,14 @@ def create_client_account(name: str, email: str, password: str) -> Client:
             (name.strip(), client_key, client_user.id, now),
         )
         client_id = cur.lastrowid
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO client_profiles (
+                client_id, contact_name, phone, industry, address_line, city, state, postal_code, created_at, updated_at
+            ) VALUES (?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ?, ?)
+            """,
+            (client_id, now, now),
+        )
     return Client(
         id=client_id,
         name=name.strip(),
@@ -198,15 +380,20 @@ def create_client_account(name: str, email: str, password: str) -> Client:
         owner_user_id=client_user.id,
         connected=False,
         realm_id=None,
+        contact_name=None,
+        contact_phone=None,
+        industry=None,
     )
 
 
 def list_clients_for_user(user: User) -> List[Client]:
     query = """
         SELECT c.id, c.name, c.client_key, c.owner_user_id, t.realm_id,
-               CASE WHEN t.client_key IS NULL THEN 0 ELSE 1 END AS connected
+               CASE WHEN t.client_key IS NULL THEN 0 ELSE 1 END AS connected,
+               cp.contact_name, cp.phone, cp.industry, c.onboarding_completed
         FROM clients c
         LEFT JOIN tokens t ON t.client_key = c.client_key
+        LEFT JOIN client_profiles cp ON cp.client_id = c.id
     """
     params: tuple = ()
     if user.role != "admin":
@@ -225,6 +412,10 @@ def list_clients_for_user(user: User) -> List[Client]:
             owner_user_id=row["owner_user_id"],
             connected=bool(row["connected"]),
             realm_id=row["realm_id"],
+            contact_name=row["contact_name"],
+            contact_phone=row["phone"],
+            industry=row["industry"],
+            onboarding_completed=row["onboarding_completed"],
         )
         for row in rows
     ]
@@ -235,9 +426,11 @@ def ensure_client_access(client_key: str, user: User) -> Client:
         row = conn.execute(
             """
             SELECT c.id, c.name, c.client_key, c.owner_user_id, t.realm_id,
-                   CASE WHEN t.client_key IS NULL THEN 0 ELSE 1 END AS connected
+                   CASE WHEN t.client_key IS NULL THEN 0 ELSE 1 END AS connected,
+                   cp.contact_name, cp.phone, cp.industry, c.onboarding_completed
             FROM clients c
             LEFT JOIN tokens t ON t.client_key = c.client_key
+            LEFT JOIN client_profiles cp ON cp.client_id = c.id
             WHERE c.client_key = ?
             """,
             (client_key,),
@@ -252,6 +445,10 @@ def ensure_client_access(client_key: str, user: User) -> Client:
             owner_user_id=row["owner_user_id"],
             connected=bool(row["connected"]),
             realm_id=row["realm_id"],
+            contact_name=row["contact_name"],
+            contact_phone=row["phone"],
+            industry=row["industry"],
+            onboarding_completed=row["onboarding_completed"],
         )
 
     if client is None:
@@ -365,6 +562,88 @@ def delete_tokens(client_key: str) -> None:
         conn.execute("DELETE FROM tokens WHERE client_key = ?", (client_key,))
 
 
+def set_user_onboarding_completed(user_id: int) -> None:
+    with _get_connection() as conn:
+        conn.execute("UPDATE users SET onboarding_completed = 1 WHERE id = ?", (user_id,))
+
+
+def set_client_onboarding_completed(client_id: int) -> None:
+    with _get_connection() as conn:
+        conn.execute("UPDATE clients SET onboarding_completed = 1 WHERE id = ?", (client_id,))
+
+
+def get_client_profile(client_id: int) -> Optional[ClientProfile]:
+    with _get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT client_id, contact_name, phone, industry, address_line, city, state, postal_code
+            FROM client_profiles
+            WHERE client_id = ?
+            """,
+            (client_id,),
+        ).fetchone()
+    if not row:
+        return None
+    return ClientProfile(
+        client_id=row["client_id"],
+        contact_name=row["contact_name"],
+        phone=row["phone"],
+        industry=row["industry"],
+        address_line=row["address_line"],
+        city=row["city"],
+        state=row["state"],
+        postal_code=row["postal_code"],
+    )
+
+
+def update_client_profile(
+    client_id: int,
+    *,
+    contact_name: Optional[str] = None,
+    phone: Optional[str] = None,
+    industry: Optional[str] = None,
+    address_line: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    postal_code: Optional[str] = None,
+) -> ClientProfile:
+    now = int(time.time())
+    with _get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO client_profiles (
+                client_id, contact_name, phone, industry, address_line, city, state, postal_code, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(client_id) DO UPDATE SET
+                contact_name=excluded.contact_name,
+                phone=excluded.phone,
+                industry=excluded.industry,
+                address_line=excluded.address_line,
+                city=excluded.city,
+                state=excluded.state,
+                postal_code=excluded.postal_code,
+                updated_at=excluded.updated_at
+            """,
+            (
+                client_id,
+                contact_name,
+                phone,
+                industry,
+                address_line,
+                city,
+                state,
+                postal_code,
+                now,
+                now,
+            ),
+        )
+    profile = get_client_profile(client_id)
+    if not profile:
+        raise RuntimeError("Failed to update client profile.")
+    return profile
+
+
 def record_audit_event(user_id: Optional[int], client_key: Optional[str], action: str, metadata: Optional[str] = None) -> None:
     now = int(time.time())
     with _get_connection() as conn:
@@ -410,6 +689,7 @@ def _row_to_user(row: Optional[sqlite3.Row]) -> Optional[User]:
         email=row["email"],
         role=row["role"],
         hashed_password=row["hashed_password"],
+        onboarding_completed=row["onboarding_completed"] if "onboarding_completed" in row.keys() else 0,
     )
 
 

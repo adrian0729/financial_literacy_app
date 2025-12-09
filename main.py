@@ -25,6 +25,12 @@ from database import (
     record_audit_event,
     save_tokens,
     verify_user_credentials,
+    get_firm_profile,
+    upsert_firm_profile,
+    get_client_profile,
+    update_client_profile,
+    set_user_onboarding_completed,
+    set_client_onboarding_completed,
 )
 from oauth import exchange_code, get_auth_url, revoke_refresh_token
 from qb_api import get_balance_sheet_metrics, get_company_info
@@ -83,7 +89,38 @@ def require_user(request: Request) -> User:
 
 
 def _sanitize_user(user: User) -> dict:
-    return {"id": user.id, "email": user.email, "role": user.role}
+    return {"id": user.id, "email": user.email, "role": user.role, "onboarding_completed": getattr(user, "onboarding_completed", 0)}
+
+
+def _default_firm_profile(user: User) -> dict:
+    profile = get_firm_profile(user.id)
+    if profile:
+        return {
+            "firm_name": profile.firm_name,
+            "company_type": profile.company_type,
+            "contact_first_name": profile.contact_first_name,
+            "contact_last_name": profile.contact_last_name,
+            "contact_phone": profile.contact_phone,
+            "address_line": profile.address_line,
+            "city": profile.city,
+            "state": profile.state,
+            "postal_code": profile.postal_code,
+            "client_volume": profile.client_volume,
+            "website": profile.website,
+        }
+    return {
+        "firm_name": "Your firm",
+        "company_type": "accounting",
+        "contact_first_name": None,
+        "contact_last_name": None,
+        "contact_phone": None,
+        "address_line": None,
+        "city": None,
+        "state": None,
+        "postal_code": None,
+        "client_volume": None,
+        "website": None,
+    }
 
 
 def _serialize_clients(clients: List[Client]) -> List[dict]:
@@ -94,9 +131,25 @@ def _serialize_clients(clients: List[Client]) -> List[dict]:
             "client_key": client.client_key,
             "connected": client.connected,
             "realm_id": client.realm_id,
+            "contact_name": client.contact_name,
+            "contact_phone": client.contact_phone,
+            "industry": client.industry,
         }
         for client in clients
     ]
+
+
+def _serialize_client(client: Client) -> dict:
+    return {
+        "id": client.id,
+        "name": client.name,
+        "client_key": client.client_key,
+        "connected": client.connected,
+        "realm_id": client.realm_id,
+        "contact_name": client.contact_name,
+        "contact_phone": client.contact_phone,
+        "industry": client.industry,
+    }
 
 
 class ClientCreatePayload(BaseModel):
@@ -123,7 +176,11 @@ def login_action(request: Request, email: str = Form(...), password: str = Form(
         )
 
     request.session["user_id"] = user.id
-    return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+    if user.role == "admin" and getattr(user, "onboarding_completed", 0) == 0:
+        return RedirectResponse("/onboarding/admin?step=1", status_code=status.HTTP_303_SEE_OTHER)
+    if user.role == "client" and getattr(user, "onboarding_completed", 0) == 0:
+        return RedirectResponse("/onboarding/client?step=1", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse("/admin/overview" if user.role == "admin" else "/app/overview", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/logout")
@@ -132,29 +189,207 @@ def logout(request: Request):
     return RedirectResponse(LOGIN_PATH, status_code=status.HTTP_303_SEE_OTHER)
 
 
+@app.get("/onboarding/admin", response_class=HTMLResponse)
+def onboarding_admin(request: Request, step: int = 1, user: User = Depends(require_user)):
+    if user.role != "admin":
+        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+    data = request.session.get("admin_onboarding") or {}
+    profile = get_firm_profile(user.id)
+    return templates.TemplateResponse(
+        "onboarding_admin.html",
+        {"request": request, "user": _sanitize_user(user), "step": step, "data": data, "profile": profile},
+    )
+
+
+@app.post("/onboarding/admin")
+def onboarding_admin_submit(
+    request: Request,
+    step: int = Form(...),
+    company_type: Optional[str] = Form(None),
+    firm_name: Optional[str] = Form(None),
+    contact_first_name: Optional[str] = Form(None),
+    contact_last_name: Optional[str] = Form(None),
+    contact_phone: Optional[str] = Form(None),
+    address_line: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
+    state: Optional[str] = Form(None),
+    postal_code: Optional[str] = Form(None),
+    client_volume: Optional[str] = Form(None),
+    website: Optional[str] = Form(None),
+    user: User = Depends(require_user),
+):
+    if user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only admins can complete onboarding.")
+    data = request.session.get("admin_onboarding") or {}
+    if company_type:
+        data["company_type"] = company_type
+    if firm_name:
+        data["firm_name"] = firm_name
+    if contact_first_name:
+        data["contact_first_name"] = contact_first_name
+    if contact_last_name:
+        data["contact_last_name"] = contact_last_name
+    if contact_phone:
+        data["contact_phone"] = contact_phone
+    if address_line:
+        data["address_line"] = address_line
+    if city:
+        data["city"] = city
+    if state:
+        data["state"] = state
+    if postal_code:
+        data["postal_code"] = postal_code
+    if client_volume:
+        data["client_volume"] = client_volume
+    if website:
+        data["website"] = website
+    request.session["admin_onboarding"] = data
+    next_step = step + 1
+    if next_step > 3:
+        # finalize
+        upsert_firm_profile(
+            user_id=user.id,
+            company_type=data.get("company_type", "accounting"),
+            firm_name=data.get("firm_name", "My Firm"),
+            contact_first_name=data.get("contact_first_name"),
+            contact_last_name=data.get("contact_last_name"),
+            contact_phone=data.get("contact_phone"),
+            address_line=data.get("address_line"),
+            city=data.get("city"),
+            state=data.get("state"),
+            postal_code=data.get("postal_code"),
+            client_volume=data.get("client_volume"),
+            website=data.get("website"),
+        )
+        set_user_onboarding_completed(user.id)
+        request.session.pop("admin_onboarding", None)
+        return RedirectResponse("/admin/overview", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(f"/onboarding/admin?step={next_step}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.get("/onboarding/client", response_class=HTMLResponse)
+def onboarding_client(request: Request, step: int = 1, user: User = Depends(require_user)):
+    if user.role != "client":
+        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+    data = request.session.get("client_onboarding") or {}
+    clients = list_clients_for_user(user)
+    client_profile = get_client_profile(clients[0].id) if clients else None
+    return templates.TemplateResponse(
+        "onboarding_client.html",
+        {"request": request, "user": _sanitize_user(user), "step": step, "data": data, "client_profile": client_profile},
+    )
+
+
+@app.post("/onboarding/client")
+def onboarding_client_submit(
+    request: Request,
+    step: int = Form(...),
+    contact_name: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    industry: Optional[str] = Form(None),
+    address_line: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
+    state: Optional[str] = Form(None),
+    postal_code: Optional[str] = Form(None),
+    user: User = Depends(require_user),
+):
+    if user.role != "client":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only clients can complete onboarding.")
+    data = request.session.get("client_onboarding") or {}
+    if contact_name:
+        data["contact_name"] = contact_name
+    if phone:
+        data["phone"] = phone
+    if industry:
+        data["industry"] = industry
+    if address_line:
+        data["address_line"] = address_line
+    if city:
+        data["city"] = city
+    if state:
+        data["state"] = state
+    if postal_code:
+        data["postal_code"] = postal_code
+    request.session["client_onboarding"] = data
+    next_step = step + 1
+    if next_step > 2:
+        clients = list_clients_for_user(user)
+        if not clients:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client record missing.")
+        update_client_profile(
+            clients[0].id,
+            contact_name=data.get("contact_name"),
+            phone=data.get("phone"),
+            industry=data.get("industry"),
+            address_line=data.get("address_line"),
+            city=data.get("city"),
+            state=data.get("state"),
+            postal_code=data.get("postal_code"),
+        )
+        set_client_onboarding_completed(clients[0].id)
+        set_user_onboarding_completed(user.id)
+        request.session.pop("client_onboarding", None)
+        return RedirectResponse("/app/overview", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(f"/onboarding/client?step={next_step}", status_code=status.HTTP_303_SEE_OTHER)
+
+
 @app.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, client_key: Optional[str] = None):
+def root_redirect(request: Request):
     user_id = request.session.get("user_id")
     if not user_id:
         return RedirectResponse(LOGIN_PATH, status_code=status.HTTP_303_SEE_OTHER)
-
     user = get_user_by_id(user_id)
     if not user:
         request.session.clear()
         return RedirectResponse(LOGIN_PATH, status_code=status.HTTP_303_SEE_OTHER)
+    if user.role == "admin":
+        if getattr(user, "onboarding_completed", 0) == 0:
+            return RedirectResponse("/onboarding/admin?step=1", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse("/admin/overview", status_code=status.HTTP_303_SEE_OTHER)
+    if getattr(user, "onboarding_completed", 0) == 0:
+        return RedirectResponse("/onboarding/client?step=1", status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse("/app/overview", status_code=status.HTTP_303_SEE_OTHER)
 
+
+def _admin_dashboard_context(request: Request, user: User, section: Optional[str] = None) -> dict:
     clients = list_clients_for_user(user)
-    session_selected = request.session.pop("last_connected_client", None)
-    default_key = client_key or session_selected or (clients[0].client_key if clients else "")
-    return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
-            "user": _sanitize_user(user),
-            "clients": _serialize_clients(clients),
-            "default_client_key": default_key,
-        },
-    )
+    default_client_key = request.query_params.get("client_key") or (clients[0].client_key if clients else "")
+    firm_profile = _default_firm_profile(user)
+    return {
+        "request": request,
+        "user": _sanitize_user(user),
+        "clients": _serialize_clients(clients),
+        "default_client_key": default_client_key,
+        "firm_profile": firm_profile,
+        "active_section": section or "",
+    }
+
+
+def _client_dashboard_context(request: Request, user: User, section: Optional[str] = None) -> dict:
+    clients = list_clients_for_user(user)
+    client = clients[0] if clients else None
+    profile = get_client_profile(client.id) if client else None
+    return {
+        "request": request,
+        "user": _sanitize_user(user),
+        "client": client,
+        "client_profile": profile,
+        "active_section": section or "",
+    }
+
+
+@app.get("/admin/overview", response_class=HTMLResponse)
+def admin_overview(request: Request, section: Optional[str] = None, user: User = Depends(require_user)):
+    if user.role != "admin":
+        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse("admin_dashboard.html", _admin_dashboard_context(request, user, section))
+
+
+@app.get("/app/overview", response_class=HTMLResponse)
+def app_overview(request: Request, section: Optional[str] = None, user: User = Depends(require_user)):
+    if user.role != "client":
+        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse("client_dashboard.html", _client_dashboard_context(request, user, section))
 
 
 @app.get("/auth")
@@ -191,7 +426,14 @@ async def callback(request: Request):
     save_tokens(token_record)
     record_audit_event(state_data.get("user_id"), client_key, "quickbooks_connect")
     request.session["last_connected_client"] = token_record.client_key
-    return RedirectResponse(f"/?client_key={token_record.client_key}", status_code=status.HTTP_303_SEE_OTHER)
+    user = get_user_by_id(state_data.get("user_id")) if state_data.get("user_id") else None
+    if user and user.role == "admin":
+        dest = f"/admin/overview?client_key={token_record.client_key}"
+    elif user and user.role == "client":
+        dest = f"/app/overview?client_key={token_record.client_key}"
+    else:
+        dest = f"/?client_key={token_record.client_key}"
+    return RedirectResponse(dest, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.get("/company")
@@ -254,6 +496,37 @@ def disconnect(client_key: Optional[str] = None, user: User = Depends(require_us
     if removed:
         record_audit_event(user.id, selected, "quickbooks_disconnect")
     return {"status": "disconnected" if removed else "not_connected"}
+
+
+@app.post("/client/profile")
+def client_profile_update(
+    contact_name: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    industry: Optional[str] = Form(None),
+    address_line: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
+    state: Optional[str] = Form(None),
+    postal_code: Optional[str] = Form(None),
+    user: User = Depends(require_user),
+):
+    if user.role != "client":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only clients can update this profile.")
+    clients = list_clients_for_user(user)
+    if not clients:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client record missing.")
+    primary = clients[0]
+    update_client_profile(
+        primary.id,
+        contact_name=contact_name,
+        phone=phone,
+        industry=industry,
+        address_line=address_line,
+        city=city,
+        state=state,
+        postal_code=postal_code,
+    )
+    record_audit_event(user.id, primary.client_key, "client_profile_update")
+    return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/profile/password")

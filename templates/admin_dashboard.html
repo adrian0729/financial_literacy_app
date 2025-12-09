@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Control – Financial Literacy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color: #e2e8f0;
+        background: #050910;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.25), transparent 55%),
+          radial-gradient(circle at 80% 0%, rgba(14, 116, 144, 0.35), transparent 45%),
+          #050910;
+        color: #e2e8f0;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(12px);
+        background: rgba(5, 9, 16, 0.8);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        padding: 0.85rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .brand {
+        font-family: "Rajdhani", "Inter", sans-serif;
+        letter-spacing: 0.18rem;
+        text-transform: uppercase;
+        color: #60a5fa;
+        font-weight: 700;
+      }
+      nav {
+        margin-left: auto;
+        display: flex;
+        gap: 1rem;
+      }
+      nav a {
+        color: #cbd5f5;
+        text-decoration: none;
+        padding: 0.55rem 0.85rem;
+        border-radius: 12px;
+        transition: background 0.15s ease, color 0.15s ease;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      nav a:hover,
+      nav a.active {
+        background: rgba(96, 165, 250, 0.15);
+        color: #fff;
+      }
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        margin-left: 1rem;
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+      }
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .section-title {
+        font-family: "Rajdhani", "Inter", sans-serif;
+        letter-spacing: 0.08rem;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        color: #94a3b8;
+        margin-bottom: 0.35rem;
+      }
+      .glass {
+        border-radius: 22px;
+        background: rgba(12, 18, 32, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 25px 60px rgba(2, 6, 23, 0.7);
+        backdrop-filter: blur(16px);
+        padding: 1.6rem;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+      p {
+        margin: 0.25rem 0 0;
+        color: #94a3b8;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+      .card {
+        border-radius: 16px;
+        padding: 1rem;
+        background: rgba(5, 8, 16, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      label {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.08rem;
+      }
+      input,
+      select {
+        width: 100%;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 14px;
+        padding: 0.85rem 1rem;
+        background: rgba(15, 23, 42, 0.65);
+        color: #e2e8f0;
+        font-size: 1rem;
+        transition: border 0.2s ease;
+      }
+      input:focus {
+        outline: none;
+        border-color: #60a5fa;
+      }
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1rem;
+      }
+      button {
+        border: none;
+        border-radius: 14px;
+        padding: 0.85rem 1.3rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      button.ghost {
+        background: rgba(255, 255, 255, 0.04);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      button.primary {
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        color: #fff;
+      }
+      button.secondary {
+        background: rgba(15, 23, 42, 0.8);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+      }
+      button.danger {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: #fff;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 25px rgba(2, 6, 23, 0.45);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.15rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .pill.good {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+      }
+      .pill.bad {
+        background: rgba(248, 113, 113, 0.2);
+        color: #f87171;
+      }
+      .pill.watch {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+      }
+      .metric-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 1rem;
+      }
+      .metric-card {
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        padding: 1.2rem;
+        background: rgba(5, 8, 16, 0.65);
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      .metric-value {
+        font-size: 1.6rem;
+        font-weight: 600;
+      }
+      ul.client-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.75rem 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+      ul.client-list li {
+        padding: 0.7rem 0.9rem;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid transparent;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      ul.client-list li:hover {
+        border-color: rgba(96, 165, 250, 0.4);
+      }
+      .client-actions {
+        display: flex;
+        gap: 0.4rem;
+      }
+      button.ghost {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: transparent;
+        color: #cbd5f5;
+        padding: 0.4rem 0.8rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+      }
+      button.ghost.danger {
+        border-color: rgba(248, 113, 113, 0.4);
+        color: #fca5a5;
+      }
+      .activity-feed {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        max-height: 260px;
+        overflow-y: auto;
+      }
+      .activity-item {
+        display: flex;
+        gap: 0.85rem;
+        align-items: center;
+        background: rgba(5, 8, 16, 0.65);
+        padding: 0.85rem;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .activity-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+      }
+      .activity-body {
+        display: flex;
+        flex-direction: column;
+      }
+      .toast-host {
+        position: fixed;
+        top: 1.2rem;
+        right: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        z-index: 20;
+      }
+      .toast {
+        padding: 0.85rem 1.1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.85);
+        min-width: 220px;
+      }
+      @media (max-width: 860px) {
+        nav {
+          flex-wrap: wrap;
+        }
+        header {
+          flex-wrap: wrap;
+        }
+        .user-chip {
+          width: 100%;
+          justify-content: flex-end;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">{{ firm_profile.firm_name }}</div>
+      <nav id="navigation">
+        <a href="#section-dashboard" data-target="section-dashboard">Overview</a>
+        <a href="#section-firm" data-target="section-firm">Firm</a>
+        <a href="#section-connect" data-target="section-connect">Connection</a>
+        <a href="#section-clients" data-target="section-clients">Clients</a>
+        <a href="#section-metrics" data-target="section-metrics">Metrics</a>
+        <a href="#section-activity" data-target="section-activity">Activity</a>
+        <a href="#section-account" data-target="section-account">Account</a>
+      </nav>
+      <div class="user-chip">
+        <div class="avatar">{{ user.email[:2].upper() }}</div>
+        <div>
+          <div style="font-weight: 700">{{ user.email }}</div>
+          <div style="font-size: 0.85rem; color: #94a3b8">Admin</div>
+        </div>
+        <form method="post" action="/logout">
+          <button class="ghost" type="submit" style="margin-left:0.6rem">Logout</button>
+        </form>
+      </div>
+    </header>
+
+    <main>
+      <section class="glass" id="section-dashboard">
+        <div class="section-title">Financial command center</div>
+        <h1>Welcome back, {{ user.email.split('@')[0].title() }}</h1>
+        <p>Monitor each client's liquidity, reconnect QuickBooks, and deliver actionable insight.</p>
+      </section>
+
+      <section class="glass" id="section-firm">
+        <div class="section-title">Firm profile</div>
+        <div class="grid">
+          <div class="card">
+            <div>Firm name</div>
+            <strong>{{ firm_profile.firm_name }}</strong>
+            <p>{{ firm_profile.company_type | capitalize }} advisor</p>
+          </div>
+          <div class="card">
+            <div>Primary contact</div>
+            <strong>{{ firm_profile.contact_first_name or '' }} {{ firm_profile.contact_last_name or '' }}</strong>
+            <p>{{ firm_profile.contact_phone or 'Add a phone number' }}</p>
+          </div>
+          <div class="card">
+            <div>Client portfolio</div>
+            <strong>{{ clients | length }} linked companies</strong>
+            <p>{% if firm_profile.client_volume %}Target: {{ firm_profile.client_volume }}{% else %}Share expected volume{% endif %}</p>
+          </div>
+          <div class="card">
+            <div>Location</div>
+            <strong>{{ firm_profile.city or 'Add city' }}, {{ firm_profile.state or '' }}</strong>
+            <p>{{ firm_profile.address_line or 'Add address' }}</p>
+          </div>
+        </div>
+        <div style="margin-top:1rem">
+          <a href="/onboarding/admin?step=1" style="color:#60a5fa;text-decoration:none">Edit firm profile →</a>
+        </div>
+      </section>
+
+      <section class="glass" id="section-connect">
+        <div class="section-title">QuickBooks connection</div>
+        <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap">
+          <div>
+            <h2 style="margin:0">Client identifier</h2>
+            <p style="margin:0; color:#94a3b8; font-size:0.95rem">Select a client, connect, and refresh their metrics.</p>
+          </div>
+          <div id="clientStatus" class="pill {{ 'good' if clients and clients[0].connected else 'bad' }}">
+            {% if clients and clients[0].connected %}Connected{% else %}Not connected{% endif %}
+          </div>
+        </div>
+        <div style="margin-top:1rem; max-width:420px">
+          <label for="clientKey">Identifier</label>
+          <input id="clientKey" placeholder="client-key" value="{{ default_client_key }}" />
+        </div>
+        <div class="button-row">
+          <button class="primary" onclick="beginOAuth()">Connect QuickBooks</button>
+          <button class="secondary" onclick="fetchMetrics()">Refresh metrics</button>
+          <button class="danger" onclick="disconnectClient()">Disconnect</button>
+        </div>
+      </section>
+
+      <section class="glass" id="section-clients">
+        <div class="section-title">Onboard a client</div>
+        <div class="grid">
+          <div class="card" style="grid-column: span 2">
+            <h2>Create login credentials</h2>
+            <p>Give your client access; they can connect QuickBooks on their own.</p>
+            <form id="clientForm" onsubmit="submitClient(event)" style="margin-top:1rem">
+              <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
+                <div>
+                  <label for="clientName">Business name</label>
+                  <input id="clientName" required placeholder="Dewey Cheatem & Howe, LLC" />
+                </div>
+                <div>
+                  <label for="clientEmail">Client email</label>
+                  <input id="clientEmail" type="email" required placeholder="client@company.com" />
+                </div>
+                <div>
+                  <label for="clientPassword">Temporary password</label>
+                  <input id="clientPassword" type="password" required placeholder="Choose a secure password" />
+                </div>
+              </div>
+              <div class="button-row">
+                <button type="submit" class="primary">Create client account</button>
+              </div>
+            </form>
+          </div>
+          <div class="card" style="grid-column: span 2">
+            <h3 style="margin-bottom:0.35rem">Clients you can access</h3>
+            <ul class="client-list" id="clientList">
+              <li class="pill watch" style="cursor:default">Loading…</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass" id="section-metrics">
+        <div class="section-title">Financial literacy metrics</div>
+        <h2>At-a-glance ratios</h2>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Working capital</span>
+              <span class="pill good" id="chip-workingCapital">Healthy</span>
+            </div>
+            <div id="workingCapital" class="metric-value">—</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Working capital ratio</span>
+              <span class="pill watch" id="chip-workingCapitalRatio">Watch</span>
+            </div>
+            <div id="workingCapitalRatio" class="metric-value">—</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Debt-to-equity</span>
+              <span class="pill watch" id="chip-debtToEquityRatio">Watch</span>
+            </div>
+            <div id="debtToEquityRatio" class="metric-value">—</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Current assets</span>
+              <span class="pill good" id="chip-currentAssets">Healthy</span>
+            </div>
+            <div id="currentAssets" class="metric-value">—</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Current liabilities</span>
+              <span class="pill bad" id="chip-currentLiabilities">Action</span>
+            </div>
+            <div id="currentLiabilities" class="metric-value">—</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Total liabilities</span>
+              <span class="pill bad" id="chip-totalLiabilities">Action</span>
+            </div>
+            <div id="totalLiabilities" class="metric-value">—</div>
+          </div>
+          <div class="metric-card">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Total equity</span>
+              <span class="pill good" id="chip-totalEquity">Healthy</span>
+            </div>
+            <div id="totalEquity" class="metric-value">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass" id="section-activity">
+        <div class="section-title">System activity</div>
+        <h2>Recent orchestration</h2>
+        <div class="activity-feed" id="activityFeed">
+          <div class="activity-item">
+            <div class="activity-avatar">⏳</div>
+            <div class="activity-body">
+              <strong>Waiting for actions…</strong>
+              <span style="font-size:0.85rem; color:#94a3b8">Activity log populates as you manage clients.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass" id="section-account">
+        <div class="section-title">Account security</div>
+        <h2>Change your password</h2>
+        <p>Passwords are hashed and stored securely. Confirm the new one before saving.</p>
+        <form id="passwordForm" onsubmit="updatePassword(event)" style="margin-top:1rem">
+          <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
+            <div>
+              <label for="newPassword">New password</label>
+              <input id="newPassword" type="password" required minlength="6" autocomplete="new-password" />
+            </div>
+            <div>
+              <label for="confirmPassword">Confirm password</label>
+              <input id="confirmPassword" type="password" required minlength="6" autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="button-row">
+            <button type="submit" class="primary">Change password</button>
+            <span id="passwordStatus" style="color:#94a3b8"></span>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <div class="toast-host" id="toastHost"></div>
+
+    <script>
+      const dashboardData = {{ {
+        "user": user,
+        "clients": clients,
+        "firmProfile": firm_profile,
+        "defaultClientKey": default_client_key,
+        "activeSection": active_section
+      } | tojson }};
+
+      const formatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+      const ratioFormatter = new Intl.NumberFormat(undefined, { style: "decimal", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const state = {
+        clients: dashboardData.clients || [],
+        currentClientKey: dashboardData.defaultClientKey || "",
+      };
+
+      const toasts = document.getElementById("toastHost");
+      const clientInput = document.getElementById("clientKey");
+
+      function showToast(message, tone = "neutral") {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        if (tone === "error") {
+          toast.style.borderColor = "rgba(248, 113, 113, 0.3)";
+        } else if (tone === "success") {
+          toast.style.borderColor = "rgba(16, 185, 129, 0.3)";
+        }
+        toast.textContent = message;
+        toasts.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
+
+      function currentClientKey() {
+        if (!clientInput) return state.currentClientKey || "";
+        const value = clientInput.value.trim();
+        if (value) {
+          state.currentClientKey = value;
+          return value;
+        }
+        return state.currentClientKey || "";
+      }
+
+      function findClientByKey(key) {
+        return state.clients.find((c) => c.client_key === key);
+      }
+
+      function updateMetric(id, value, isRatio = false) {
+        const el = document.getElementById(id);
+        const chip = document.getElementById(`chip-${id}`);
+        if (!el) return;
+        if (value == null) {
+          el.textContent = "—";
+          if (chip) {
+            chip.textContent = "No data";
+            chip.className = "pill watch";
+          }
+          return;
+        }
+        el.textContent = isRatio ? ratioFormatter.format(value) : formatter.format(value);
+        if (chip) {
+          let status = "watch";
+          if (id === "workingCapitalRatio") {
+            if (value >= 1.2) status = "good";
+            else if (value < 1) status = "bad";
+          } else if (id === "debtToEquityRatio") {
+            if (value <= 1.5) status = "good";
+            else if (value > 3) status = "bad";
+          } else if (id === "currentLiabilities" || id === "totalLiabilities") {
+            status = "bad";
+          } else {
+            status = "good";
+          }
+          chip.className = `pill ${status}`;
+          chip.textContent = status === "good" ? "Healthy" : status === "bad" ? "Action" : "Watch";
+        }
+      }
+
+      function renderClients() {
+        const list = document.getElementById("clientList");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!state.clients.length) {
+          const li = document.createElement("li");
+          li.textContent = "No client accounts yet.";
+          li.style.color = "#94a3b8";
+          list.appendChild(li);
+          return;
+        }
+        state.clients.forEach((client) => {
+          const li = document.createElement("li");
+          const info = document.createElement("div");
+          const name = document.createElement("strong");
+          name.textContent = client.name;
+          const statusChip = document.createElement("span");
+          statusChip.className = `pill ${client.connected ? "good" : "bad"}`;
+          statusChip.style.marginLeft = "0.45rem";
+          statusChip.textContent = client.connected ? "Connected" : "Not connected";
+          info.appendChild(name);
+          info.appendChild(statusChip);
+
+          const actions = document.createElement("div");
+          actions.className = "client-actions";
+
+          const viewBtn = document.createElement("button");
+          viewBtn.type = "button";
+          viewBtn.className = "ghost";
+          viewBtn.textContent = "Select";
+          viewBtn.onclick = () => {
+            state.currentClientKey = client.client_key;
+            if (clientInput) clientInput.value = client.client_key;
+            showToast(`Selected ${client.name}`, "success");
+          };
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "ghost danger";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.onclick = () => deleteClientRecord(client.client_key, client.name);
+
+          actions.appendChild(viewBtn);
+          actions.appendChild(deleteBtn);
+          li.appendChild(info);
+          li.appendChild(actions);
+          list.appendChild(li);
+        });
+      }
+
+      function pushActivity(message) {
+        const feed = document.getElementById("activityFeed");
+        if (!feed) return;
+        const item = document.createElement("div");
+        item.className = "activity-item";
+        const avatar = document.createElement("div");
+        avatar.className = "activity-avatar";
+        avatar.textContent = "•";
+        const body = document.createElement("div");
+        body.className = "activity-body";
+        body.innerHTML = `<strong>${message}</strong><span style="font-size:0.8rem; color:#94a3b8">${new Date().toLocaleTimeString()}</span>`;
+        item.appendChild(avatar);
+        item.appendChild(body);
+        feed.prepend(item);
+        while (feed.children.length > 6) {
+          feed.removeChild(feed.lastChild);
+        }
+      }
+
+      function beginOAuth() {
+        const key = currentClientKey();
+        if (!key) {
+          showToast("Select a client first.", "error");
+          return;
+        }
+        showToast(`Redirecting to Intuit for ${key}…`, "success");
+        window.location.href = `/auth?client_key=${encodeURIComponent(key)}`;
+      }
+
+      async function fetchMetrics() {
+        const key = currentClientKey();
+        if (!key) {
+          showToast("Select a client before refreshing.", "error");
+          return;
+        }
+        const client = findClientByKey(key);
+        if (client && !client.connected) {
+          showToast(`Connect ${client.name} to QuickBooks first.`, "error");
+          return;
+        }
+        try {
+          const response = await fetch(`/metrics?client_key=${encodeURIComponent(key)}`);
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          updateMetric("workingCapital", body.workingCapital);
+          updateMetric("workingCapitalRatio", body.workingCapitalRatio, true);
+          updateMetric("debtToEquityRatio", body.debtToEquityRatio, true);
+          updateMetric("currentAssets", body.currentAssets);
+          updateMetric("currentLiabilities", body.currentLiabilities);
+          updateMetric("totalLiabilities", body.totalLiabilities);
+          updateMetric("totalEquity", body.totalEquity);
+          showToast("Metrics refreshed.", "success");
+          pushActivity(`Metrics refreshed for ${key}`);
+        } catch (error) {
+          showToast(error.message, "error");
+          pushActivity(`Metrics failed for ${key}`);
+        }
+      }
+
+      async function refreshClients() {
+        try {
+          const response = await fetch("/clients");
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          state.clients = body.clients || [];
+          renderClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function submitClient(event) {
+        event.preventDefault();
+        const payload = {
+          name: document.getElementById("clientName").value.trim(),
+          email: document.getElementById("clientEmail").value.trim(),
+          password: document.getElementById("clientPassword").value,
+        };
+        if (!payload.name || !payload.email || !payload.password) {
+          showToast("Fill out all client fields.", "error");
+          return;
+        }
+        try {
+          const response = await fetch("/clients", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          document.getElementById("clientForm").reset();
+          showToast(`Client ${body.client.name} created.`, "success");
+          pushActivity(`Client ${body.client.name} onboarded`);
+          refreshClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function disconnectClient() {
+        const key = currentClientKey();
+        if (!key) {
+          showToast("Select a client first.", "error");
+          return;
+        }
+        try {
+          const response = await fetch(`/disconnect?client_key=${encodeURIComponent(key)}`, { method: "POST" });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          showToast("Client disconnected.", "success");
+          pushActivity(`Disconnected client ${key}`);
+          refreshClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function deleteClientRecord(clientKey, clientName) {
+        if (!window.confirm(`Delete ${clientName}? Their login and tokens will be removed.`)) {
+          return;
+        }
+        try {
+          const response = await fetch(`/clients/${encodeURIComponent(clientKey)}`, { method: "DELETE" });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          showToast(`Deleted ${clientName}.`, "success");
+          pushActivity(`Client ${clientName} deleted`);
+          refreshClients();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      }
+
+      async function updatePassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const status = document.getElementById("passwordStatus");
+        status.textContent = "Updating…";
+        try {
+          const form = new FormData();
+          form.append("password", password);
+          form.append("confirm_password", confirmPassword);
+          const response = await fetch("/profile/password", { method: "POST", body: form });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || response.statusText);
+          document.getElementById("passwordForm").reset();
+          status.textContent = "Password updated.";
+          showToast("Password updated.", "success");
+        } catch (error) {
+          status.textContent = error.message;
+          showToast(error.message, "error");
+        }
+      }
+
+      function activateNav(targetId) {
+        const links = document.querySelectorAll("nav a");
+        links.forEach((link) => {
+          link.classList.toggle("active", link.dataset.target === targetId);
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        if (clientInput && state.currentClientKey) clientInput.value = state.currentClientKey;
+        renderClients();
+        const initialSection = dashboardData.activeSection || "section-dashboard";
+        const targetInit = document.getElementById(initialSection);
+        if (targetInit) targetInit.scrollIntoView({ behavior: "smooth" });
+        activateNav(initialSection);
+        document.querySelectorAll("nav a").forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetId = link.dataset.target;
+            const target = document.getElementById(targetId);
+            if (target) {
+              target.scrollIntoView({ behavior: "smooth" });
+              activateNav(targetId);
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

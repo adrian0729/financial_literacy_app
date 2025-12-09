@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Firm Onboarding</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.15), transparent 60%), #050910;
+        color: #e2e8f0;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 760px;
+        background: rgba(15, 23, 42, 0.85);
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow: 0 30px 80px rgba(2, 6, 23, 0.8);
+        padding: 2.5rem;
+        backdrop-filter: blur(18px);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 2rem;
+      }
+
+      p {
+        color: #94a3b8;
+      }
+
+      form {
+        margin-top: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem 1.5rem;
+      }
+
+      label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08rem;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 12px;
+        padding: 0.75rem 0.9rem;
+        background: rgba(5, 8, 16, 0.7);
+        color: #f8fafc;
+        font-size: 1rem;
+      }
+
+      button {
+        grid-column: 1 / -1;
+        padding: 0.9rem 1rem;
+        border-radius: 16px;
+        border: none;
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 0.5rem;
+      }
+
+      .hint {
+        grid-column: 1 / -1;
+        font-size: 0.9rem;
+        color: #cbd5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Set up your firm profile</h1>
+      <p>Tell us who you are so we can tailor the advisor experience and surface the right client tools.</p>
+      <form method="post" action="/onboarding">
+        <div>
+          <label for="company_type">Company type</label>
+          <select id="company_type" name="company_type" required>
+            <option value="accounting" {% if profile and profile.company_type == 'accounting' %}selected{% endif %}>Accounting firm</option>
+            <option value="business" {% if profile and profile.company_type == 'business' %}selected{% endif %}>Business</option>
+          </select>
+        </div>
+        <div>
+          <label for="firm_name">Firm name</label>
+          <input id="firm_name" name="firm_name" required value="{{ profile.firm_name if profile else '' }}" />
+        </div>
+        <div>
+          <label for="contact_first_name">First name</label>
+          <input id="contact_first_name" name="contact_first_name" value="{{ profile.contact_first_name if profile else '' }}" />
+        </div>
+        <div>
+          <label for="contact_last_name">Last name</label>
+          <input id="contact_last_name" name="contact_last_name" value="{{ profile.contact_last_name if profile else '' }}" />
+        </div>
+        <div>
+          <label for="contact_phone">Mobile number</label>
+          <input id="contact_phone" name="contact_phone" value="{{ profile.contact_phone if profile else '' }}" />
+        </div>
+        <div>
+          <label for="address_line">Street address</label>
+          <input id="address_line" name="address_line" value="{{ profile.address_line if profile else '' }}" />
+        </div>
+        <div>
+          <label for="city">City</label>
+          <input id="city" name="city" value="{{ profile.city if profile else '' }}" />
+        </div>
+        <div>
+          <label for="state">State</label>
+          <input id="state" name="state" value="{{ profile.state if profile else '' }}" />
+        </div>
+        <div>
+          <label for="postal_code">Postal code</label>
+          <input id="postal_code" name="postal_code" value="{{ profile.postal_code if profile else '' }}" />
+        </div>
+        <div>
+          <label for="client_volume">Client volume</label>
+          <select id="client_volume" name="client_volume">
+            {% set volume = profile.client_volume if profile else '' %}
+            <option value="" {% if not volume %}selected{% endif %}>Select range</option>
+            <option value="1-20" {% if volume == '1-20' %}selected{% endif %}>1–20</option>
+            <option value="21-50" {% if volume == '21-50' %}selected{% endif %}>21–50</option>
+            <option value="51-100" {% if volume == '51-100' %}selected{% endif %}>51–100</option>
+            <option value="100+" {% if volume == '100+' %}selected{% endif %}>100+</option>
+          </select>
+        </div>
+        <div>
+          <label for="website">Website</label>
+          <input id="website" name="website" value="{{ profile.website if profile else '' }}" />
+        </div>
+        <div class="hint">You can edit these details later from the admin dashboard.</div>
+        <button type="submit">Save and continue</button>
+      </form>
+    </div>
+  </body>
+</html>
