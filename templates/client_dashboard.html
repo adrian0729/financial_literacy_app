@@ -220,15 +220,22 @@
         border: 1px solid var(--border);
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
       }
+      .nav-item {
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .nav-item.active {
+        background: rgba(22, 163, 74, 0.1);
+        border-color: rgba(22, 163, 74, 0.2);
+      }
     </style>
   </head>
   <body>
     {% set path = request.url.path %}
     {% if active_section %}
       {% set current = active_section %}
-    {% elif 'metrics' in path %}
+    {% elif path.startswith('/app/metrics') %}
       {% set current = 'metrics' %}
-    {% elif 'account' in path %}
+    {% elif path.startswith('/app/account') %}
       {% set current = 'account' %}
     {% else %}
       {% set current = 'overview' %}
@@ -236,9 +243,9 @@
     <header>
       <div class="brand">{{ client.name if client else "Client portal" }}</div>
       <nav>
-        <a href="/app/overview" class="{% if current == 'overview' %}active{% endif %}">Overview</a>
-        <a href="/app/metrics" class="{% if current == 'metrics' %}active{% endif %}">Metrics</a>
-        <a href="/app/account" class="{% if current == 'account' %}active{% endif %}">Account</a>
+        <a href="/app/overview" class="nav-item {% if current == 'overview' %}active{% endif %}">Overview</a>
+        <a href="/app/metrics" class="nav-item {% if current == 'metrics' %}active{% endif %}">Metrics</a>
+        <a href="/app/account" class="nav-item {% if current == 'account' %}active{% endif %}">Account</a>
       </nav>
       <div class="user-chip">
         <div class="avatar">{{ user.email[:2].upper() }}</div>

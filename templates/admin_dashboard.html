@@ -240,15 +240,16 @@
       ul.client-list li {
         padding: 0.7rem 0.9rem;
         border-radius: 12px;
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid transparent;
+        background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+        border: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 0.75rem;
       }
       ul.client-list li:hover {
-        border-color: rgba(96, 165, 250, 0.4);
+        border-color: rgba(22, 163, 74, 0.35);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
       }
       .client-actions {
         display: flex;
@@ -329,7 +330,16 @@
     </style>
   </head>
   <body>
-    {% set current = active_section or 'dashboard' %}
+    {% set path = request.url.path %}
+    {% if active_section %}
+      {% set current = active_section %}
+    {% elif 'metrics' in path or 'clients' in path %}
+      {% set current = 'clients' %}
+    {% elif 'account' in path or 'settings' in path %}
+      {% set current = 'account' %}
+    {% else %}
+      {% set current = 'dashboard' %}
+    {% endif %}
     <header>
       <div class="brand">{{ firm_profile.firm_name }}</div>
       <nav id="navigation">
