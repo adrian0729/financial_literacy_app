@@ -231,23 +231,13 @@
   </head>
   <body>
     {% set path = request.url.path %}
-    {% if active_section %}
-      {% set current = active_section %}
-    {% elif path.startswith('/app/metrics') %}
-      {% set current = 'metrics' %}
-    {% elif path.startswith('/app/account') %}
-      {% set current = 'account' %}
-    {% elif path.startswith('/app/overview') %}
-      {% set current = 'overview' %}
-    {% else %}
-      {% set current = '' %}
-    {% endif %}
+    {% set current = '' %}
     <header>
       <div class="brand">{{ client.name if client else "Client portal" }}</div>
       <nav>
-        <a href="/app/overview" class="nav-item {% if current == 'overview' %}active{% endif %}">Overview</a>
-        <a href="/app/metrics" class="nav-item {% if current == 'metrics' %}active{% endif %}">Metrics</a>
-        <a href="/app/account" class="nav-item {% if current == 'account' %}active{% endif %}">Account</a>
+        <a href="/app/overview" class="nav-item">Overview</a>
+        <a href="/app/metrics" class="nav-item">Metrics</a>
+        <a href="/app/account" class="nav-item">Account</a>
       </nav>
       <div class="user-chip">
         <div class="avatar">{{ user.email[:2].upper() }}</div>
