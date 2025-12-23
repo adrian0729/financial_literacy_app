@@ -432,7 +432,7 @@ def admin_account(request: Request, user: User = Depends(require_user)):
 def app_overview(request: Request, section: Optional[str] = None, user: User = Depends(require_user)):
     if user.role != "client":
         return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-    return templates.TemplateResponse("client_dashboard.html", _client_dashboard_context(request, user, section))
+    return templates.TemplateResponse("client_dashboard.html", _client_dashboard_context(request, user, "overview"))
 
 
 @app.get("/app/metrics", response_class=HTMLResponse)

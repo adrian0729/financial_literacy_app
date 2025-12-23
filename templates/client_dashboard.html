@@ -237,8 +237,10 @@
       {% set current = 'metrics' %}
     {% elif path.startswith('/app/account') %}
       {% set current = 'account' %}
-    {% else %}
+    {% elif path.startswith('/app/overview') %}
       {% set current = 'overview' %}
+    {% else %}
+      {% set current = '' %}
     {% endif %}
     <header>
       <div class="brand">{{ client.name if client else "Client portal" }}</div>
