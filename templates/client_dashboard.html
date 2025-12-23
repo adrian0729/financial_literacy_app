@@ -11,25 +11,27 @@
     <style>
       :root {
         font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #050910;
-        color: #e2e8f0;
+        background: #f8fafc;
+        color: #0f172a;
+        --accent: #16a34a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --card: #ffffff;
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.3), transparent 45%),
-          radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.35), transparent 45%),
-          #050910;
+        background: #f8fafc;
+        color: #0f172a;
       }
       header {
         position: sticky;
         top: 0;
         z-index: 10;
-        backdrop-filter: blur(12px);
-        background: rgba(5, 9, 16, 0.8);
-        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        background: #fff;
+        border-bottom: 1px solid var(--border);
         padding: 0.85rem 1.5rem;
         display: flex;
         align-items: center;
@@ -39,25 +41,27 @@
         font-family: "Rajdhani", "Inter", sans-serif;
         letter-spacing: 0.16rem;
         text-transform: uppercase;
-        color: #60a5fa;
+        color: var(--accent);
         font-weight: 700;
       }
       nav {
         margin-left: auto;
         display: flex;
-        gap: 0.9rem;
+        gap: 0.6rem;
       }
       nav a {
-        color: #cbd5f5;
+        color: #0f172a;
         text-decoration: none;
         padding: 0.55rem 0.85rem;
         border-radius: 12px;
         font-weight: 600;
+        border: 1px solid transparent;
       }
       nav a:hover,
       nav a.active {
-        background: rgba(96, 165, 250, 0.15);
-        color: #fff;
+        background: rgba(22, 163, 74, 0.1);
+        color: #0f172a;
+        border-color: rgba(22, 163, 74, 0.2);
       }
       .user-chip {
         display: flex;
@@ -65,18 +69,19 @@
         gap: 0.5rem;
         padding: 0.45rem 0.75rem;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(148, 163, 184, 0.15);
+        background: #f8fafc;
+        border: 1px solid var(--border);
       }
       .avatar {
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        background: linear-gradient(135deg, var(--accent), #22c55e);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
+        color: #fff;
       }
       main {
         max-width: 1100px;
@@ -87,11 +92,10 @@
         gap: 1.5rem;
       }
       .glass {
-        border-radius: 22px;
-        background: rgba(12, 18, 32, 0.7);
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        box-shadow: 0 25px 60px rgba(2, 6, 23, 0.7);
-        backdrop-filter: blur(16px);
+        border-radius: 18px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
         padding: 1.6rem;
       }
       .section-title {
@@ -99,7 +103,7 @@
         letter-spacing: 0.08rem;
         text-transform: uppercase;
         font-size: 0.95rem;
-        color: #94a3b8;
+        color: var(--muted);
         margin-bottom: 0.35rem;
       }
       h1,
@@ -109,22 +113,22 @@
       }
       p {
         margin: 0.25rem 0 0;
-        color: #94a3b8;
+        color: var(--muted);
       }
       label {
         display: block;
         margin-bottom: 0.35rem;
         font-size: 0.9rem;
         text-transform: uppercase;
-        color: #94a3b8;
+        color: var(--muted);
       }
       input {
         width: 100%;
         border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.35);
+        border: 1px solid var(--border);
         padding: 0.75rem 1rem;
-        background: rgba(5, 8, 16, 0.7);
-        color: #f8fafc;
+        background: #fff;
+        color: #0f172a;
       }
       .grid {
         display: grid;
@@ -137,15 +141,20 @@
         padding: 0.8rem 1.2rem;
         font-size: 0.95rem;
         cursor: pointer;
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
       }
       button.primary {
-        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        background: linear-gradient(135deg, var(--accent), #22c55e);
         color: white;
       }
       button.secondary {
-        background: rgba(255, 255, 255, 0.08);
-        color: #e2e8f0;
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: #fff;
+        color: #0f172a;
+        border: 1px solid var(--border);
+      }
+      button:hover {
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+        transform: translateY(-1px);
       }
       .status-pill {
         display: inline-flex;
@@ -169,10 +178,10 @@
         gap: 1rem;
       }
       .metrics-grid .item {
-        background: rgba(15, 23, 42, 0.75);
+        background: var(--card);
         border-radius: 16px;
         padding: 1rem;
-        border: 1px solid rgba(148, 163, 184, 0.2);
+        border: 1px solid var(--border);
       }
       .pill {
         display: inline-flex;
@@ -197,7 +206,7 @@
       }
       .toast-host {
         position: fixed;
-        top: 1rem;
+        bottom: 1rem;
         right: 1rem;
         display: flex;
         flex-direction: column;
@@ -205,21 +214,31 @@
         z-index: 20;
       }
       .toast {
-        background: rgba(15, 23, 42, 0.9);
+        background: #ffffff;
         padding: 0.7rem 1rem;
         border-radius: 10px;
-        border: 1px solid rgba(148, 163, 184, 0.3);
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
       }
     </style>
   </head>
   <body>
+    {% set path = request.url.path %}
+    {% if active_section %}
+      {% set current = active_section %}
+    {% elif 'metrics' in path %}
+      {% set current = 'metrics' %}
+    {% elif 'account' in path %}
+      {% set current = 'account' %}
+    {% else %}
+      {% set current = 'overview' %}
+    {% endif %}
     <header>
       <div class="brand">{{ client.name if client else "Client portal" }}</div>
       <nav>
-        <a href="#overview" data-target="overview">Overview</a>
-        <a href="#connect" data-target="connect">Connection</a>
-        <a href="#metrics" data-target="metrics">Metrics</a>
-        <a href="#account" data-target="account">Account</a>
+        <a href="/app/overview" class="{% if current == 'overview' %}active{% endif %}">Overview</a>
+        <a href="/app/metrics" class="{% if current == 'metrics' %}active{% endif %}">Metrics</a>
+        <a href="/app/account" class="{% if current == 'account' %}active{% endif %}">Account</a>
       </nav>
       <div class="user-chip">
         <div class="avatar">{{ user.email[:2].upper() }}</div>
@@ -229,24 +248,29 @@
         </form>
       </div>
     </header>
-    {% if not client %}
+{% if not client %}
     <main>
       <div class="glass">
         <h2>No client profile</h2>
         <p>Please contact your advisor so they can assign a company to your login.</p>
       </div>
     </main>
-    {% else %}
+{% else %}
     <main>
+      {% if current == 'overview' %}
       <section class="glass" id="overview">
         <div class="section-title">Welcome</div>
-        <h1>{{ client.name }}</h1>
+        <h1>Welcome, {{ (client_profile.contact_name.split(' ')[0] if client_profile and client_profile.contact_name else client.name.split(' ')[0]) }}</h1>
         <div class="status-pill {{ 'connected' if client.connected else 'pending' }}" style="margin-top:0.5rem">
           {% if client.connected %}Connected to QuickBooks{% else %}Not connected{% endif %}
         </div>
-        <p style="margin-top:0.75rem">Connect to keep your financial health metrics current.</p>
+        <p style="margin-top:0.75rem">
+          This portal gives you a clean snapshot of your company’s liquidity and leverage. Connect QuickBooks to pull live balance sheet data, refresh your metrics anytime, track recent activity, and keep your contact details up to date.
+        </p>
       </section>
+      {% endif %}
 
+      {% if current == 'metrics' %}
       <section class="glass" id="connect">
         <div class="section-title">Connection</div>
         <h2>QuickBooks link</h2>
@@ -256,7 +280,7 @@
           <button class="secondary" onclick="fetchMetrics()">Refresh metrics</button>
           <button class="secondary" onclick="disconnectClient()">Disconnect</button>
         </div>
-        <div id="status" style="margin-top:1rem;font-size:0.95rem;color:#94a3b8"></div>
+        <div id="status" style="margin-top:1rem;font-size:0.95rem;color:var(--muted)"></div>
       </section>
 
       <section class="glass" id="metrics">
@@ -314,11 +338,13 @@
           </div>
         </div>
       </section>
+      {% endif %}
 
+      {% if current == 'account' %}
       <section class="glass" id="account">
         <div class="section-title">Company profile</div>
-        <h2>Update contact details</h2>
-        <form method="post" action="/client/profile" class="grid" style="margin-top:1rem">
+        <h2>Update your details</h2>
+        <form method="post" action="/client/profile" class="grid" style="margin-top:1rem; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:1rem">
           <div>
             <label for="contact_name">Primary contact</label>
             <input id="contact_name" name="contact_name" value="{{ client_profile.contact_name if client_profile else '' }}" />
@@ -329,7 +355,55 @@
           </div>
           <div>
             <label for="industry">Industry</label>
-            <input id="industry" name="industry" value="{{ client_profile.industry if client_profile else client.industry or '' }}" />
+            <input id="industry" name="industry" value="{{ client_profile.industry if client_profile else client.industry or '' }}" placeholder="e.g., SaaS, eCommerce, Services" />
+          </div>
+          <div>
+            <label for="employees">Team size</label>
+            {% set emp = client_profile.employees if client_profile else '' %}
+            <select id="employees" name="employees">
+              {% for option in ['1-4','5-20','21-50','51-100','101-500','500+'] %}
+              <option value="{{ option }}" {% if emp == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="revenue">Monthly revenue</label>
+            {% set rev = client_profile.revenue if client_profile else '' %}
+            <select id="revenue" name="revenue">
+              {% for option in ['< $50k','$50k - $100k','$100k - $250k','$250k - $500k','$500k - $1M','$1M+'] %}
+              <option value="{{ option }}" {% if rev == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label>E-commerce?</label>
+            {% set eco = client_profile.ecommerce if client_profile else None %}
+            <div class="radio-row" style="gap:0.75rem">
+              <label><input type="radio" name="ecommerce" value="yes" {% if eco == 1 %}checked{% endif %}/> Yes</label>
+              <label><input type="radio" name="ecommerce" value="no" {% if eco == 0 %}checked{% endif %}/> No</label>
+            </div>
+          </div>
+          <div style="grid-column:1/-1">
+            <label>Funding sources</label>
+            {% set funding_set = (client_profile.funding.split(',')|map('trim')|list if client_profile and client_profile.funding else []) %}
+            <div class="checkbox-group" style="gap:0.4rem">
+              {% for option in ['Angel/Seed','VC/Growth','Revenue funded','Debt/Loan','Bootstrapped'] %}
+              <label><input type="checkbox" name="funding" value="{{ option }}" {% if option in funding_set %}checked{% endif %}/> {{ option }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div>
+            <label for="intent">Primary goal</label>
+            {% set intent_val = client_profile.intent if client_profile else '' %}
+            <select id="intent" name="intent">
+              {% for option in ['Cash visibility','Board reporting','Fundraising prep','Lender package','Tax prep','Other'] %}
+              <option value="{{ option }}" {% if intent_val == option %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="grid-column:1/-1">
+            <label for="intent_extra">Notes / context</label>
+            <textarea id="intent_extra" name="intent_extra" placeholder="Key tools, banks, pain points" style="min-height:90px">{{ client_profile.intent_extra if client_profile else '' }}</textarea>
           </div>
           <div>
             <label for="address_line">Address</label>
@@ -340,20 +414,23 @@
             <input id="city" name="city" value="{{ client_profile.city if client_profile else '' }}" />
           </div>
           <div>
-            <label for="state">State</label>
+            <label for="state">State/Province</label>
             <input id="state" name="state" value="{{ client_profile.state if client_profile else '' }}" />
           </div>
           <div>
             <label for="postal_code">Postal code</label>
             <input id="postal_code" name="postal_code" value="{{ client_profile.postal_code if client_profile else '' }}" />
           </div>
-          <div style="grid-column:1/-1; display:flex; gap:0.6rem; align-items:center">
+          <div style="grid-column:1/-1; display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap">
             <button type="submit" class="primary">Save profile</button>
-            <span style="color:#94a3b8; font-size:0.95rem">You can update this anytime.</span>
+            <span style="color:var(--muted); font-size:0.95rem">You can update any onboarding details here.</span>
           </div>
         </form>
       </section>
+      {% endif %}
+
     </main>
+{% endif %}
     <div class="toast-host" id="toastHost"></div>
     <script>
       const clientKey = "{{ client.client_key if client else '' }}";
@@ -451,18 +528,7 @@
           fetchMetrics();
         }
         document.querySelector("nav a")?.classList.add("active");
-        document.querySelectorAll("nav a").forEach((link) => {
-          link.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = link.dataset.target;
-            const target = document.getElementById(targetId);
-            if (target) target.scrollIntoView({ behavior: "smooth" });
-            document.querySelectorAll("nav a").forEach((ln) => ln.classList.remove("active"));
-            link.classList.add("active");
-          });
-        });
       });
     </script>
-    {% endif %}
   </body>
 </html>

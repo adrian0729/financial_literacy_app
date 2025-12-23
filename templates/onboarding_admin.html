@@ -11,8 +11,11 @@
     <style>
       :root {
         font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: #e2e8f0;
-        background: #050910;
+        color: #0f172a;
+        background: #f8fafc;
+        --accent: #16a34a;
+        --border: #e2e8f0;
+        --muted: #64748b;
       }
       body {
         margin: 0;
@@ -21,25 +24,59 @@
         align-items: center;
         justify-content: center;
         padding: 2rem;
-        background: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.35), transparent 45%),
-          radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.45), transparent 40%),
-          #050910;
+        background: #f8fafc;
       }
-      .card {
+      .shell {
         width: 100%;
-        max-width: 760px;
-        background: rgba(12, 18, 32, 0.9);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 28px;
-        padding: 2rem 2.25rem;
-        box-shadow: 0 25px 60px rgba(2, 6, 23, 0.75);
-        backdrop-filter: blur(16px);
+        max-width: 980px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      }
+      .steps {
+        padding: 2rem 1.5rem;
+        border-right: 1px solid var(--border);
+        background: linear-gradient(180deg, #f1f5f9 0%, #ffffff 100%);
+      }
+      .steps h2 {
+        margin: 0 0 1rem;
+        font-size: 1.1rem;
+        color: #0f172a;
+      }
+      .step {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.8rem 0.6rem;
+        border-radius: 10px;
+        color: #0f172a;
+      }
+      .step .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e1;
+      }
+      .step.active {
+        background: rgba(22, 163, 74, 0.12);
+        color: #0f172a;
+        font-weight: 600;
+      }
+      .step.active .dot {
+        border-color: var(--accent);
+        background: var(--accent);
+      }
+      .content {
+        padding: 2rem 2.5rem;
       }
       .brand {
         font-family: "Rajdhani", "Inter", sans-serif;
         text-transform: uppercase;
         letter-spacing: 0.28rem;
-        color: #60a5fa;
+        color: var(--accent);
         font-size: 1rem;
         display: block;
         margin-bottom: 0.25rem;
@@ -50,51 +87,37 @@
       }
       p {
         margin: 0 0 1.25rem;
-        color: #94a3b8;
-      }
-      .steps {
-        display: flex;
-        gap: 0.75rem;
-        margin-bottom: 1.25rem;
-      }
-      .step {
-        flex: 1;
-        padding: 0.75rem;
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        background: rgba(255, 255, 255, 0.02);
-        text-align: center;
-        font-weight: 600;
-        color: #94a3b8;
-      }
-      .step.active {
-        border-color: rgba(96, 165, 250, 0.7);
-        color: #e2e8f0;
-        background: rgba(96, 165, 250, 0.08);
+        color: var(--muted);
       }
       form {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1rem 1.25rem;
+        gap: 1.25rem 1.5rem;
         margin-top: 1rem;
       }
       label {
         font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 0.08rem;
-        color: #94a3b8;
+        color: var(--muted);
         display: block;
         margin-bottom: 0.35rem;
       }
       input,
       select {
         width: 100%;
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 12px;
+        border: 1px solid var(--border);
         padding: 0.85rem 1rem;
-        background: rgba(5, 8, 16, 0.7);
-        color: #f8fafc;
+        background: #fff;
+        color: #0f172a;
         font-size: 1rem;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: rgba(22, 163, 74, 0.5);
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
       }
       button {
         border: none;
@@ -103,14 +126,15 @@
         font-size: 1rem;
         cursor: pointer;
         color: #fff;
-        background: linear-gradient(135deg, #2563eb, #14b8a6);
-        box-shadow: 0 15px 35px rgba(14, 116, 144, 0.35);
+        background: linear-gradient(135deg, var(--accent), #22c55e);
+        box-shadow: 0 15px 35px rgba(22, 163, 74, 0.25);
       }
       .footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-top: 1.25rem;
+        grid-column: 1 / -1;
       }
       .hint {
         color: #94a3b8;
@@ -119,21 +143,29 @@
     </style>
   </head>
   <body>
-    <div class="card">
-      <span class="brand">Onboarding</span>
-      <h1>Set up your firm</h1>
-      <p>We’ll tailor the portal for your accounting firm. You can edit this later in Account.</p>
+    <div class="shell">
+      <aside class="steps">
+        <h2>Setup checklist</h2>
+        <div class="step {% if step == 1 %}active{% endif %}"><span class="dot"></span>Firm basics</div>
+        <div class="step {% if step == 2 %}active{% endif %}"><span class="dot"></span>Contact name</div>
+        <div class="step {% if step == 3 %}active{% endif %}"><span class="dot"></span>Phone</div>
+        <div class="step {% if step == 4 %}active{% endif %}"><span class="dot"></span>Address</div>
+        <div class="step {% if step == 5 %}active{% endif %}"><span class="dot"></span>Region</div>
+        <div class="step {% if step == 6 %}active{% endif %}"><span class="dot"></span>Clients & site</div>
+      </aside>
+      <main class="content">
+        <span class="brand">Onboarding</span>
+        <h1>Set up your firm</h1>
+        <p>We’ll tailor the portal for your accounting firm. You can edit this later in Account.</p>
 
-      <div class="steps">
-        <div class="step {% if step == 1 %}active{% endif %}">1. Firm type</div>
-        <div class="step {% if step == 2 %}active{% endif %}">2. Contact</div>
-        <div class="step {% if step == 3 %}active{% endif %}">3. Details</div>
-      </div>
-
-      <form method="post" action="/onboarding/admin">
+        <form method="post" action="/onboarding/admin">
         <input type="hidden" name="step" value="{{ step }}" />
 
         {% if step == 1 %}
+        <div>
+          <label for="firm_name">Firm name</label>
+          <input id="firm_name" name="firm_name" value="{{ data.firm_name or profile.firm_name if profile else '' }}" required />
+        </div>
         <div>
           <label for="company_type">Company type</label>
           <select id="company_type" name="company_type" required>
@@ -143,40 +175,39 @@
             <option value="business" {% if data.company_type == 'business' %}selected{% endif %}>Business</option>
           </select>
         </div>
-        <div>
-          <label for="firm_name">Firm name</label>
-          <input id="firm_name" name="firm_name" value="{{ data.firm_name or profile.firm_name if profile else '' }}" required />
-        </div>
         {% elif step == 2 %}
         <div>
           <label for="contact_first_name">First name</label>
-          <input id="contact_first_name" name="contact_first_name" value="{{ data.contact_first_name or profile.contact_first_name if profile else '' }}" />
+          <input id="contact_first_name" name="contact_first_name" value="{{ data.contact_first_name or profile.contact_first_name if profile else '' }}" required />
         </div>
         <div>
           <label for="contact_last_name">Last name</label>
-          <input id="contact_last_name" name="contact_last_name" value="{{ data.contact_last_name or profile.contact_last_name if profile else '' }}" />
+          <input id="contact_last_name" name="contact_last_name" value="{{ data.contact_last_name or profile.contact_last_name if profile else '' }}" required />
         </div>
+        {% elif step == 3 %}
         <div>
           <label for="contact_phone">Phone</label>
           <input id="contact_phone" name="contact_phone" value="{{ data.contact_phone or profile.contact_phone if profile else '' }}" />
         </div>
+        {% elif step == 4 %}
         <div>
-          <label for="address_line">Address</label>
+          <label for="address_line">Address line</label>
           <input id="address_line" name="address_line" value="{{ data.address_line or profile.address_line if profile else '' }}" />
         </div>
         <div>
           <label for="city">City</label>
           <input id="city" name="city" value="{{ data.city or profile.city if profile else '' }}" />
         </div>
+        {% elif step == 5 %}
         <div>
-          <label for="state">State</label>
+          <label for="state">State/Province</label>
           <input id="state" name="state" value="{{ data.state or profile.state if profile else '' }}" />
         </div>
         <div>
           <label for="postal_code">Postal code</label>
           <input id="postal_code" name="postal_code" value="{{ data.postal_code or profile.postal_code if profile else '' }}" />
         </div>
-        {% elif step == 3 %}
+        {% elif step == 6 %}
         <div>
           <label for="client_volume">Clients you manage</label>
           <select id="client_volume" name="client_volume">
@@ -194,10 +225,11 @@
         {% endif %}
 
         <div class="footer">
-          <div class="hint">Step {{ step }} of 3</div>
-          <button type="submit">{{ 'Next' if step < 3 else 'Finish setup' }}</button>
+          <div class="hint">Step {{ step }} of 6</div>
+          <button type="submit">{{ 'Next' if step < 6 else 'Finish setup' }}</button>
         </div>
       </form>
+      </main>
     </div>
   </body>
 </html>

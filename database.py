@@ -62,6 +62,12 @@ class ClientProfile:
     contact_name: Optional[str]
     phone: Optional[str]
     industry: Optional[str]
+    employees: Optional[str]
+    revenue: Optional[str]
+    ecommerce: Optional[int]
+    funding: Optional[str]
+    intent: Optional[str]
+    intent_extra: Optional[str]
     address_line: Optional[str]
     city: Optional[str]
     state: Optional[str]
@@ -166,6 +172,12 @@ def init_db() -> bool:
                 contact_name TEXT,
                 phone TEXT,
                 industry TEXT,
+                employees TEXT,
+                revenue TEXT,
+                ecommerce INTEGER,
+                funding TEXT,
+                intent TEXT,
+                intent_extra TEXT,
                 address_line TEXT,
                 city TEXT,
                 state TEXT,
@@ -202,6 +214,19 @@ def _ensure_schema_columns() -> None:
         cols = {row["name"] for row in conn.execute("PRAGMA table_info(clients)").fetchall()}
         if "onboarding_completed" not in cols:
             conn.execute("ALTER TABLE clients ADD COLUMN onboarding_completed INTEGER NOT NULL DEFAULT 0")
+        cols = {row["name"] for row in conn.execute("PRAGMA table_info(client_profiles)").fetchall()}
+        if "employees" not in cols:
+            conn.execute("ALTER TABLE client_profiles ADD COLUMN employees TEXT")
+        if "revenue" not in cols:
+            conn.execute("ALTER TABLE client_profiles ADD COLUMN revenue TEXT")
+        if "ecommerce" not in cols:
+            conn.execute("ALTER TABLE client_profiles ADD COLUMN ecommerce INTEGER")
+        if "funding" not in cols:
+            conn.execute("ALTER TABLE client_profiles ADD COLUMN funding TEXT")
+        if "intent" not in cols:
+            conn.execute("ALTER TABLE client_profiles ADD COLUMN intent TEXT")
+        if "intent_extra" not in cols:
+            conn.execute("ALTER TABLE client_profiles ADD COLUMN intent_extra TEXT")
 
 
 def _ensure_default_admin() -> None:
@@ -576,7 +601,7 @@ def get_client_profile(client_id: int) -> Optional[ClientProfile]:
     with _get_connection() as conn:
         row = conn.execute(
             """
-            SELECT client_id, contact_name, phone, industry, address_line, city, state, postal_code
+            SELECT client_id, contact_name, phone, industry, employees, revenue, ecommerce, funding, intent, intent_extra, address_line, city, state, postal_code
             FROM client_profiles
             WHERE client_id = ?
             """,
@@ -589,6 +614,12 @@ def get_client_profile(client_id: int) -> Optional[ClientProfile]:
         contact_name=row["contact_name"],
         phone=row["phone"],
         industry=row["industry"],
+        employees=row["employees"],
+        revenue=row["revenue"],
+        ecommerce=row["ecommerce"],
+        funding=row["funding"],
+        intent=row["intent"],
+        intent_extra=row["intent_extra"] if "intent_extra" in row.keys() else None,
         address_line=row["address_line"],
         city=row["city"],
         state=row["state"],
@@ -602,6 +633,12 @@ def update_client_profile(
     contact_name: Optional[str] = None,
     phone: Optional[str] = None,
     industry: Optional[str] = None,
+    employees: Optional[str] = None,
+    revenue: Optional[str] = None,
+    ecommerce: Optional[int] = None,
+    funding: Optional[str] = None,
+    intent: Optional[str] = None,
+    intent_extra: Optional[str] = None,
     address_line: Optional[str] = None,
     city: Optional[str] = None,
     state: Optional[str] = None,
@@ -612,13 +649,19 @@ def update_client_profile(
         conn.execute(
             """
             INSERT INTO client_profiles (
-                client_id, contact_name, phone, industry, address_line, city, state, postal_code, created_at, updated_at
+                client_id, contact_name, phone, industry, employees, revenue, ecommerce, funding, intent, intent_extra, address_line, city, state, postal_code, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(client_id) DO UPDATE SET
                 contact_name=excluded.contact_name,
                 phone=excluded.phone,
                 industry=excluded.industry,
+                employees=excluded.employees,
+                revenue=excluded.revenue,
+                ecommerce=excluded.ecommerce,
+                funding=excluded.funding,
+                intent=excluded.intent,
+                intent_extra=excluded.intent_extra,
                 address_line=excluded.address_line,
                 city=excluded.city,
                 state=excluded.state,
@@ -630,6 +673,12 @@ def update_client_profile(
                 contact_name,
                 phone,
                 industry,
+                employees,
+                revenue,
+                ecommerce,
+                funding,
+                intent,
+                intent_extra,
                 address_line,
                 city,
                 state,
