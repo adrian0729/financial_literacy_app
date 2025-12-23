@@ -421,22 +421,8 @@ def admin_metrics(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse("admin_dashboard.html", _admin_dashboard_context(request, user, "metrics"))
 
 
-@app.get("/admin/activity", response_class=HTMLResponse)
-def admin_activity(request: Request, user: User = Depends(require_user)):
-    if user.role != "admin":
-        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-    return RedirectResponse("/admin/overview", status_code=status.HTTP_303_SEE_OTHER)
-
-
 @app.get("/admin/account", response_class=HTMLResponse)
 def admin_account(request: Request, user: User = Depends(require_user)):
-    if user.role != "admin":
-        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-    return templates.TemplateResponse("admin_dashboard.html", _admin_dashboard_context(request, user, "account"))
-
-
-@app.get("/admin/settings", response_class=HTMLResponse)
-def admin_settings(request: Request, user: User = Depends(require_user)):
     if user.role != "admin":
         return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse("admin_dashboard.html", _admin_dashboard_context(request, user, "account"))
@@ -456,25 +442,11 @@ def app_metrics(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse("client_dashboard.html", _client_dashboard_context(request, user, "metrics"))
 
 
-@app.get("/app/activity", response_class=HTMLResponse)
-def app_activity(request: Request, user: User = Depends(require_user)):
-    if user.role != "client":
-        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-    return RedirectResponse("/app/overview", status_code=status.HTTP_303_SEE_OTHER)
-
-
 @app.get("/app/account", response_class=HTMLResponse)
 def app_account(request: Request, user: User = Depends(require_user)):
     if user.role != "client":
         return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse("client_dashboard.html", _client_dashboard_context(request, user, "account"))
-
-
-@app.get("/app/settings", response_class=HTMLResponse)
-def app_settings(request: Request, user: User = Depends(require_user)):
-    if user.role != "client":
-        return RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)
-    return templates.TemplateResponse("client_dashboard.html", _client_dashboard_context(request, user, "settings"))
 
 
 @app.get("/auth")
