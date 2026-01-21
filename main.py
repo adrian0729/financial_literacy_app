@@ -1,6 +1,8 @@
 import logging
 import os
 import secrets
+from datetime import datetime
+import json
 from pathlib import Path
 from typing import List, Optional
 
@@ -9,9 +11,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, EmailStr
 from starlette.middleware.sessions import SessionMiddleware
+import requests
 
 from database import (
     Client,
+    ClientProfile,
     User,
     DB_INITIALIZED_NEW,
     create_client_account,
@@ -294,6 +298,7 @@ def onboarding_client_submit(
     ecommerce: Optional[str] = Form(None),
     funding: Optional[str] = Form(None),
     intent: Optional[str] = Form(None),
+    intent_extra: Optional[str] = Form(None),
     address_line: Optional[str] = Form(None),
     city: Optional[str] = Form(None),
     state: Optional[str] = Form(None),
@@ -319,6 +324,8 @@ def onboarding_client_submit(
         data["funding"] = funding
     if intent:
         data["intent"] = intent
+    if intent_extra:
+        data["intent_extra"] = intent_extra
     if address_line:
         data["address_line"] = address_line
     if city:
@@ -343,6 +350,7 @@ def onboarding_client_submit(
             ecommerce=1 if str(data.get("ecommerce", "")).lower() == "yes" else 0,
             funding=data.get("funding"),
             intent=data.get("intent"),
+            intent_extra=data.get("intent_extra"),
             address_line=data.get("address_line"),
             city=data.get("city"),
             state=data.get("state"),
@@ -398,6 +406,110 @@ def _client_dashboard_context(request: Request, user: User, section: Optional[st
         "client_profile": profile,
         "active_section": section or "",
     }
+
+
+def _extract_company_snapshot(company_info: List[dict]) -> dict:
+    if not company_info:
+        return {}
+    info = company_info[0] or {}
+    snapshot = {
+        "companyName": info.get("CompanyName") or info.get("LegalName"),
+        "legalName": info.get("LegalName"),
+        "country": info.get("Country"),
+        "fiscalYearStartMonth": info.get("FiscalYearStartMonth"),
+        "defaultTimeZone": info.get("DefaultTimeZone"),
+        "email": (info.get("Email") or {}).get("Address"),
+        "companyStartDate": info.get("CompanyStartDate"),
+    }
+    name_values = info.get("NameValue") or []
+    for item in name_values:
+        if item.get("Name") == "QBOIndustryType":
+            snapshot["industryType"] = item.get("Value")
+            break
+    address = info.get("CompanyAddr") or {}
+    if address:
+        snapshot["address"] = {
+            "line1": address.get("Line1"),
+            "city": address.get("City"),
+            "region": address.get("CountrySubDivisionCode"),
+            "postalCode": address.get("PostalCode"),
+        }
+    return {k: v for k, v in snapshot.items() if v}
+
+
+def _build_llm_prompt(client: Client, profile: Optional[ClientProfile], metrics: dict, company_snapshot: dict) -> str:
+    profile_data = {}
+    if profile:
+        profile_data = {
+            "contactName": getattr(profile, "contact_name", None),
+            "phone": getattr(profile, "phone", None),
+            "industry": getattr(profile, "industry", None),
+            "employees": getattr(profile, "employees", None),
+            "revenue": getattr(profile, "revenue", None),
+            "ecommerce": getattr(profile, "ecommerce", None),
+            "funding": getattr(profile, "funding", None),
+            "intent": getattr(profile, "intent", None),
+            "intentExtra": getattr(profile, "intent_extra", None),
+            "addressLine": getattr(profile, "address_line", None),
+            "city": getattr(profile, "city", None),
+            "state": getattr(profile, "state", None),
+            "postalCode": getattr(profile, "postal_code", None),
+        }
+    cleaned_profile = {k: v for k, v in profile_data.items() if v not in (None, "", "0")}
+    cleaned_metrics = {k: v for k, v in metrics.items() if v is not None}
+
+    prompt = f"""
+You are a financial health coach for startups and small businesses. Using the data provided, write a clear, friendly overview and actionable recommendations a non-finance founder can understand.
+
+Include:
+1) A 4-6 sentence summary of overall financial health.
+2) Key strengths (3 bullet points).
+3) Risks / watch-outs (3 bullet points).
+4) Suggested next steps (3-5 bullet points).
+5) A short, plain-language disclaimer that this is informational and not definitive financial advice.
+
+Company context:
+- Client name: {client.name}
+- QuickBooks connected: {"yes" if client.connected else "no"}
+- Industry (from onboarding): {cleaned_profile.get("industry", "unknown")}
+- Team size: {cleaned_profile.get("employees", "unknown")}
+- Monthly revenue range: {cleaned_profile.get("revenue", "unknown")}
+- Funding sources: {cleaned_profile.get("funding", "unknown")}
+- Primary goal: {cleaned_profile.get("intent", "unknown")}
+- Notes: {cleaned_profile.get("intentExtra", "none")}
+
+QuickBooks company snapshot (JSON):
+{json.dumps(company_snapshot, indent=2)}
+
+Financial metrics (most recent, JSON):
+{json.dumps(cleaned_metrics, indent=2)}
+""".strip()
+    return prompt
+
+
+def _call_gemini(prompt: str) -> str:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY is not configured.")
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+    try:
+        response = requests.post(url, json=payload, timeout=20)
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=502, detail=f"LLM request failed: {exc}") from exc
+
+    if response.status_code >= 400:
+        raise HTTPException(status_code=502, detail=f"LLM request failed: {response.text}")
+
+    data = response.json()
+    candidates = data.get("candidates") or []
+    if not candidates:
+        raise HTTPException(status_code=502, detail="LLM response missing candidates.")
+    content = candidates[0].get("content", {}).get("parts", [])
+    if not content:
+        raise HTTPException(status_code=502, detail="LLM response missing content.")
+    return content[0].get("text", "")
 
 
 @app.get("/admin/overview", response_class=HTMLResponse)
@@ -509,6 +621,43 @@ def metrics(client_key: Optional[str] = None, user: User = Depends(require_user)
     if user.role == "client" and getattr(client, "onboarding_completed", 0) == 0:
         raise HTTPException(status_code=403, detail="Complete onboarding to view metrics.")
     return get_balance_sheet_metrics(selected)
+
+
+@app.get("/insights")
+def insights(client_key: Optional[str] = None, user: User = Depends(require_user)):
+    selected = _resolve_client_key(client_key, user)
+    client = ensure_client_access(selected, user)
+    if user.role == "client" and getattr(client, "onboarding_completed", 0) == 0:
+        raise HTTPException(status_code=403, detail="Complete onboarding to view insights.")
+
+    profile = get_client_profile(client.id)
+    metrics_data: dict = {}
+    metrics_error = None
+    company_snapshot: dict = {}
+
+    if client.connected:
+        try:
+            metrics_data = get_balance_sheet_metrics(selected)
+        except HTTPException as exc:
+            metrics_error = exc.detail
+        try:
+            company_snapshot = _extract_company_snapshot(get_company_info(selected))
+        except HTTPException as exc:
+            metrics_error = metrics_error or exc.detail
+    else:
+        metrics_error = "QuickBooks is not connected."
+
+    if metrics_error:
+        metrics_data["error"] = metrics_error
+
+    prompt = _build_llm_prompt(client, profile, metrics_data, company_snapshot)
+    response_text = _call_gemini(prompt)
+    return {
+        "generatedAt": datetime.utcnow().isoformat() + "Z",
+        "overview": response_text,
+        "companySnapshot": company_snapshot,
+        "metrics": metrics_data,
+    }
 
 
 @app.get("/clients")
