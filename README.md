@@ -2,8 +2,6 @@
 
 A FastAPI + Jinja web portal for accounting firms and their clients to connect QuickBooks Online (QBO), surface core balance-sheet metrics, and generate a plain-language financial health overview for startup and small business owners.
 
-This repo is meant for development and demos. It includes multi-step onboarding, admin/client role separation, encrypted token storage, and a clean white UI with green accents.
-
 ## Features
 
 ### Product
@@ -259,7 +257,3 @@ Data location: `data/app.db`
 - Configure MFA for admin users.
 - Centralize logs and add monitoring/alerts.
 - Provide privacy policy and support contact for Intuit review.
-
----
-
-If you want a more detailed deployment guide or a production hardening plan, say the word.
